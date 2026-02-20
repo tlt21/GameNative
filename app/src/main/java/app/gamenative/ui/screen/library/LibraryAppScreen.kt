@@ -101,6 +101,7 @@ import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.ui.util.AdaptiveHeroHeight
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
+import app.gamenative.utils.ContainerUtils
 import app.gamenative.utils.SteamUtils
 import com.winlator.container.ContainerData
 import com.winlator.xenvironment.ImageFsInstaller
@@ -1277,6 +1278,7 @@ internal fun AppScreenContent(
                 visible = !optionsMenuVisible,
             )
         }
+        }
 
         // Options panel - slides in from right
         GameOptionsPanel(
@@ -1395,5 +1397,4 @@ private fun Preview_AppScreen() {
             )
         }
     }
-}
 }

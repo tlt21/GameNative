@@ -235,6 +235,7 @@ private fun LibraryScreenContent(
         } else {
             WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
         }
+        Modifier.padding(top = topPadding)
     } else {
         Modifier
     }

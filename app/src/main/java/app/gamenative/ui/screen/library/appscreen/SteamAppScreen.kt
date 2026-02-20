@@ -35,7 +35,6 @@ import app.gamenative.ui.data.AppMenuOption
 import app.gamenative.ui.data.GameDisplayInfo
 import app.gamenative.ui.enums.AppOptionMenuType
 import app.gamenative.ui.enums.DialogType
-import app.gamenative.ui.screen.library.GameMigrationDialog
 import app.gamenative.utils.BestConfigService
 import app.gamenative.utils.ContainerUtils
 import app.gamenative.utils.GameCompatibilityCache
@@ -63,14 +62,11 @@ import androidx.compose.runtime.snapshotFlow
 import app.gamenative.ui.component.dialog.GameManagerDialog
 import app.gamenative.ui.component.dialog.state.GameManagerDialogState
 import app.gamenative.utils.ContainerUtils.getContainer
-import com.winlator.core.GPUInformation
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.File
-import java.nio.file.Paths
-import kotlin.io.path.pathString
 
 private data class InstallSizeInfo(
     val downloadSize: String,
@@ -1566,15 +1562,15 @@ class SteamAppScreen : BaseAppScreen() {
             )
         }
 
-        // Game migration dialog
-        if (showMoveDialog) {
-            GameMigrationDialog(
-                progress = progress,
-                currentFile = current,
-                movedFiles = moved,
-                totalFiles = total,
-            )
-        }
+        // TODO: GameMigrationDialog not yet available in this branch
+        // if (showMoveDialog) {
+        //     GameMigrationDialog(
+        //         progress = progress,
+        //         currentFile = current,
+        //         movedFiles = moved,
+        //         totalFiles = total,
+        //     )
+        // }
 
         if (gameManagerDialogState.visible) {
             GameManagerDialog(

@@ -255,23 +255,23 @@ fun SystemMenu(
     var showSupporters by remember { mutableStateOf(false) }
     var showStatusPicker by remember { mutableStateOf(false) }
 
-    LaunchedEffect(SteamFriend?) {
-        SteamService.userSteamId?.let { id ->
-            persona = SteamService.requestUserPersona()
+    LaunchedEffect(Unit) {
+        SteamService.userSteamId?.let {
+            SteamService.requestUserPersona()
         }
     }
 
     DisposableEffect(true) {
-        val onPersonaStateReceived: (SteamEvent.PersonaStateReceived) -> SteamFriend? = { event ->
+        val onPersonaStateReceived: (SteamEvent.PersonaStateReceived) -> Unit = { event ->
             Timber.d("SystemMenu onPersonaStateReceived: ${event.persona.state}")
             persona = event.persona
             selectedStatus = event.persona.state
         }
 
-        PluviaApp.events.on<SteamEvent.PersonaStateReceived, SteamFriend?>(onPersonaStateReceived)
+        PluviaApp.events.on<SteamEvent.PersonaStateReceived, Unit>(onPersonaStateReceived)
 
         onDispose {
-            PluviaApp.events.off<SteamEvent.PersonaStateReceived, SteamFriend?>(onPersonaStateReceived)
+            PluviaApp.events.off<SteamEvent.PersonaStateReceived, Unit>(onPersonaStateReceived)
         }
     }
 

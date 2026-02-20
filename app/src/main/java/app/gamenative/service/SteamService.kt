@@ -158,12 +158,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.FormBody
 import org.json.JSONObject
-import android.util.Base64
-import app.gamenative.db.dao.EncryptedAppTicketDao
 import com.winlator.container.ContainerManager
-import java.io.InputStream
-import java.io.OutputStream
-import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class SteamService : Service(), IChallengeUrlChanged {
