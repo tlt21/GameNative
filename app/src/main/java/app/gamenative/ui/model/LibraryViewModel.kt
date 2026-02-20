@@ -405,7 +405,9 @@ class LibraryViewModel @Inject constructor(
                     }
                 }
                 .filter { game ->
-                    if (currentState.appInfoSortType.contains(AppFilter.INSTALLED)) {
+                    val installedOnly = currentState.currentTab.installedOnly ||
+                        currentState.appInfoSortType.contains(AppFilter.INSTALLED)
+                    if (installedOnly) {
                         game.isInstalled
                     } else {
                         true
@@ -438,7 +440,9 @@ class LibraryViewModel @Inject constructor(
                     }
                 }
                 .filter { game ->
-                    if (currentState.appInfoSortType.contains(AppFilter.INSTALLED)) {
+                    val installedOnly = currentState.currentTab.installedOnly ||
+                        currentState.appInfoSortType.contains(AppFilter.INSTALLED)
+                    if (installedOnly) {
                         game.isInstalled
                     } else {
                         true

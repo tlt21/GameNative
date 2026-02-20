@@ -14,8 +14,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusGroup
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -610,21 +608,6 @@ internal fun AppScreenContent(
                         )
                     },
                 )
-
-                DropdownMenu(
-                    expanded = optionsMenuVisible,
-                    onDismissRequest = { optionsMenuVisible = false },
-                ) {
-                    optionsMenu.forEach { menuOption ->
-                        DropdownMenuItem(
-                            text = { Text(menuOption.optionType.text) },
-                            onClick = {
-                                menuOption.onClick()
-                                optionsMenuVisible = false
-                            },
-                        )
-                    }
-                }
             }
 
             // Game title and subtitle
@@ -1005,7 +988,7 @@ internal fun AppScreenContent(
                     ) {
                         // Download progress section
                         if (isDownloading) {
-                            val downloadInfo = SteamService.getAppDownloadInfo(displayInfo.gameId)
+                            // downloadInfo passed from BaseAppScreen based on game source
                             val statusMessageFlow = downloadInfo?.getStatusMessageFlow()
                             val statusMessageState = statusMessageFlow?.collectAsState(initial = statusMessageFlow.value)
                             val statusMessage = statusMessageState?.value
