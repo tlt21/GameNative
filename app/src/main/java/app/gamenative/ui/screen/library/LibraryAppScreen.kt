@@ -440,6 +440,17 @@ internal fun AppScreenContent(
         playButtonFocusRequester.requestFocus()
     }
 
+    // Button state calculations (needed by key event handler)
+    val isResume = !isDownloading && hasPartialDownload
+    val pauseResumeEnabled = if (isResume) wifiAllowed else true
+    val isInstall = !isInstalled
+    val installEnabled = if (isInstall) wifiAllowed && hasInternet else true
+    val buttonEnabled = if (isInstalled) {
+        installEnabled
+    } else {
+        installEnabled && isValidToDownload
+    }
+
     // Handle gamepad button presses
     val handleKeyEvent: (KeyEvent) -> Boolean = { event ->
         if (event.action == KeyEvent.ACTION_DOWN) {
@@ -475,17 +486,6 @@ internal fun AppScreenContent(
         } else {
             false
         }
-    }
-
-    // Button state calculations
-    val isResume = !isDownloading && hasPartialDownload
-    val pauseResumeEnabled = if (isResume) wifiAllowed else true
-    val isInstall = !isInstalled
-    val installEnabled = if (isInstall) wifiAllowed && hasInternet else true
-    val buttonEnabled = if (isInstalled) {
-        installEnabled
-    } else {
-        installEnabled && isValidToDownload
     }
 
     // Handle back press when options panel is open
