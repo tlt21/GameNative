@@ -610,16 +610,15 @@ internal fun AppScreenContent(
                     )
 
                     // Developer and year
+                    val releaseYear = remember(displayInfo.releaseDate) {
+                        if (displayInfo.releaseDate > 0) {
+                            SimpleDateFormat("yyyy", Locale.getDefault()).format(Date(displayInfo.releaseDate * 1000))
+                        } else {
+                            ""
+                        }
+                    }
                     Text(
-                        text = "${displayInfo.developer} • ${
-                            remember(displayInfo.releaseDate) {
-                                if (displayInfo.releaseDate > 0) {
-                                    SimpleDateFormat("yyyy", Locale.getDefault()).format(Date(displayInfo.releaseDate * 1000))
-                                } else {
-                                    ""
-                                }
-                            }
-                        }",
+                        text = "${displayInfo.developer} • $releaseYear",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.85f),
                     )
@@ -773,7 +772,7 @@ internal fun AppScreenContent(
                             Spacer(modifier = Modifier.height(8.dp))
 
                             val downloadingText = stringResource(R.string.downloading)
-                            val sizeText = remember(displayInfo.gameId, downloadProgress, downloadInfo) {
+                            val sizeText = remember(displayInfo.gameId, downloadInfo) {
                                 val (bytesDone, bytesTotal) = downloadInfo?.getBytesProgress() ?: (0L to 0L)
                                 if (bytesTotal > 0L) {
                                     "${formatBytes(bytesDone)} / ${formatBytes(bytesTotal)}"
@@ -954,25 +953,25 @@ internal fun AppScreenContent(
                     GamepadAction(
                         button = GamepadButton.START,
                         labelResId = R.string.run_app,
-                        onClick = onDownloadInstallClick,
+                        onClick = { if (buttonEnabled) onDownloadInstallClick() },
                     )
                 } else if (isDownloading) {
                     GamepadAction(
                         button = GamepadButton.START,
                         labelResId = R.string.pause_download,
-                        onClick = onPauseResumeClick,
+                        onClick = { if (pauseResumeEnabled) onPauseResumeClick() },
                     )
                 } else if (hasPartialDownload) {
                     GamepadAction(
                         button = GamepadButton.START,
                         labelResId = R.string.resume_download,
-                        onClick = onPauseResumeClick,
+                        onClick = { if (pauseResumeEnabled) onPauseResumeClick() },
                     )
                 } else {
                     GamepadAction(
                         button = GamepadButton.START,
                         labelResId = R.string.install_app,
-                        onClick = onDownloadInstallClick,
+                        onClick = { if (buttonEnabled) onDownloadInstallClick() },
                     )
                 },
                 GamepadAction(
