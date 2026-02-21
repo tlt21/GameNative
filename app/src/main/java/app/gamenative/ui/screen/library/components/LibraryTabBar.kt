@@ -1,5 +1,6 @@
 package app.gamenative.ui.screen.library.components
 
+import android.view.KeyEvent
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -43,6 +44,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
@@ -71,6 +73,7 @@ fun LibraryTabBar(
     onSearchClick: () -> Unit,
     onAddGameClick: () -> Unit,
     onMenuClick: () -> Unit,
+    onNavigateDownToGrid: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val widthClass = rememberWindowWidthClass()
@@ -84,6 +87,7 @@ fun LibraryTabBar(
             onSearchClick = onSearchClick,
             onAddGameClick = onAddGameClick,
             onMenuClick = onMenuClick,
+            onNavigateDownToGrid = onNavigateDownToGrid,
             modifier = modifier,
         )
 
@@ -95,6 +99,7 @@ fun LibraryTabBar(
             onSearchClick = onSearchClick,
             onAddGameClick = onAddGameClick,
             onMenuClick = onMenuClick,
+            onNavigateDownToGrid = onNavigateDownToGrid,
             modifier = modifier,
         )
     }
@@ -113,6 +118,7 @@ private fun CompactLibraryTabBar(
     onSearchClick: () -> Unit,
     onAddGameClick: () -> Unit,
     onMenuClick: () -> Unit,
+    onNavigateDownToGrid: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val tabs = LibraryTab.entries
@@ -134,7 +140,17 @@ private fun CompactLibraryTabBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .focusGroup(),
+                .focusGroup()
+                .onPreviewKeyEvent { keyEvent ->
+                    if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_DOWN &&
+                        keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_DOWN
+                    ) {
+                        onNavigateDownToGrid()
+                        true
+                    } else {
+                        false
+                    }
+                },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
@@ -298,6 +314,7 @@ private fun ExpandedLibraryTabBar(
     onSearchClick: () -> Unit,
     onAddGameClick: () -> Unit,
     onMenuClick: () -> Unit,
+    onNavigateDownToGrid: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val tabs = LibraryTab.entries
@@ -346,7 +363,17 @@ private fun ExpandedLibraryTabBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp)
-                .focusGroup(),
+                .focusGroup()
+                .onPreviewKeyEvent { keyEvent ->
+                    if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_DOWN &&
+                        keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_DOWN
+                    ) {
+                        onNavigateDownToGrid()
+                        true
+                    } else {
+                        false
+                    }
+                },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -607,6 +634,7 @@ private fun Preview_LibraryTabBar() {
                 onSearchClick = {},
                 onAddGameClick = {},
                 onMenuClick = {},
+                onNavigateDownToGrid = {},
             )
         }
     }
@@ -635,6 +663,7 @@ private fun Preview_LibraryTabBar_Steam() {
                 onSearchClick = {},
                 onAddGameClick = {},
                 onMenuClick = {},
+                onNavigateDownToGrid = {},
             )
         }
     }

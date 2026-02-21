@@ -34,6 +34,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
@@ -62,6 +64,7 @@ internal fun LibraryListPane(
     state: LibraryState,
     listState: LazyGridState,
     currentLayout: PaneType,
+    firstGridItemFocusRequester: FocusRequester? = null,
     onPageChange: (Int) -> Unit,
     onNavigate: (String) -> Unit,
     onRefresh: () -> Unit,
@@ -181,6 +184,7 @@ internal fun LibraryListPane(
                                 bottom = 72.dp,
                             ),
                         ) {
+                            val firstVisibleAppId = state.appInfoList.firstOrNull()?.appId
                             items(items = state.appInfoList, key = { it.index }) { item ->
                                 var isVisible by remember(item.index) { mutableStateOf(false) }
                                 val alpha by animateFloatAsState(
@@ -198,10 +202,19 @@ internal fun LibraryListPane(
                                 }
 
                                 Box(modifier = Modifier.alpha(alpha)) {
+                                    val appItemModifier = if (firstGridItemFocusRequester != null &&
+                                        item.appId == firstVisibleAppId
+                                    ) {
+                                        Modifier.focusRequester(firstGridItemFocusRequester)
+                                    } else {
+                                        Modifier
+                                    }
+
                                     if (item.index > 0 && currentLayout == PaneType.LIST) {
                                         HorizontalDivider()
                                     }
                                     AppItem(
+                                        modifier = appItemModifier,
                                         appInfo = item,
                                         onClick = { onNavigate(item.appId) },
                                         paneType = currentLayout,

@@ -155,6 +155,7 @@ private fun LibraryScreenContent(
     }
 
     val rootFocusRequester = remember { FocusRequester() }
+    val gridFirstItemFocusRequester = remember { FocusRequester() }
 
     var isSystemMenuOpen by remember { mutableStateOf(false) }
     // Keep a stable reference to the selected item so detail view doesn't disappear during list refresh/pagination.
@@ -379,6 +380,7 @@ private fun LibraryScreenContent(
                     state = state,
                     listState = listState,
                     currentLayout = currentPaneType,
+                    firstGridItemFocusRequester = gridFirstItemFocusRequester,
                     onPageChange = onPageChange,
                     onNavigate = { appId -> selectedAppId = appId
                         selectedLibraryItem = state.appInfoList.find { it.appId == appId }  },
@@ -417,6 +419,15 @@ private fun LibraryScreenContent(
                         onSearchClick = { onIsSearching(true) },
                         onAddGameClick = onAddCustomGameClick,
                         onMenuClick = { isSystemMenuOpen = true },
+                        onNavigateDownToGrid = {
+                            if (state.appInfoList.isNotEmpty()) {
+                                try {
+                                    gridFirstItemFocusRequester.requestFocus()
+                                } catch (_: IllegalStateException) {
+                                    // FocusRequester not attached yet
+                                }
+                            }
+                        },
                         modifier = Modifier
                             .align(Alignment.TopCenter)
                             .fillMaxWidth(),
