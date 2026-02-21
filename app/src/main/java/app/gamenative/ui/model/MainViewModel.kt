@@ -132,10 +132,9 @@ class MainViewModel @Inject constructor(
             it.copy(
                 connectionState = ConnectionState.CONNECTING,
                 connectionMessage = null,
+                isSteamConnected = true,
             )
         }
-        Timber.tag("MainViewModel").i("Received is connected")
-        _state.update { it.copy(isSteamConnected = true) }
     }
 
     private val onBackPressed: (AndroidEvent.BackPressed) -> Unit = {

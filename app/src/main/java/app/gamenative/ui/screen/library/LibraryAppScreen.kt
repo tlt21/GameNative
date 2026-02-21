@@ -455,6 +455,18 @@ internal fun AppScreenContent(
     } else {
         installEnabled && isValidToDownload
     }
+    val startActionEnabled = if (isDownloading || hasPartialDownload) {
+        pauseResumeEnabled
+    } else {
+        buttonEnabled
+    }
+    val onStartAction = {
+        if (isDownloading || hasPartialDownload) {
+            onPauseResumeClick()
+        } else {
+            onDownloadInstallClick()
+        }
+    }
 
     // Download progress texts hoisted here so they can be shown inside the button
     val downloadStatusMessageFlow = remember(downloadInfo) { downloadInfo?.getStatusMessageFlow() }
@@ -499,10 +511,8 @@ internal fun AppScreenContent(
 
                 // START button - primary action (play/download/pause)
                 KeyEvent.KEYCODE_BUTTON_START -> {
-                    if (isDownloading || hasPartialDownload) {
-                        if (pauseResumeEnabled) onPauseResumeClick()
-                    } else {
-                        if (buttonEnabled) onDownloadInstallClick()
+                    if (!optionsMenuVisible && startActionEnabled) {
+                        onStartAction()
                     }
                     true
                 }
@@ -852,7 +862,7 @@ internal fun AppScreenContent(
                         value = when {
                             isInstalled && displayInfo.sizeOnDisk != null -> displayInfo.sizeOnDisk
                             !isInstalled && displayInfo.sizeFromStore != null -> displayInfo.sizeFromStore
-                            else -> "Unknown"
+                            else -> stringResource(R.string.library_compatibility_unknown)
                         },
                         isCompact = true,
                         modifier = Modifier.weight(1f),
@@ -878,7 +888,7 @@ internal fun AppScreenContent(
                                 SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
                                     .format(Date(displayInfo.releaseDate * 1000))
                             } else {
-                                "Unknown"
+                                context.getString(R.string.library_compatibility_unknown)
                             }
                         },
                         isCompact = true,
@@ -931,25 +941,25 @@ internal fun AppScreenContent(
                     GamepadAction(
                         button = GamepadButton.START,
                         labelResId = R.string.run_app,
-                        onClick = { if (buttonEnabled) onDownloadInstallClick() },
+                        onClick = { if (startActionEnabled) onStartAction() },
                     )
                 } else if (isDownloading) {
                     GamepadAction(
                         button = GamepadButton.START,
                         labelResId = R.string.pause_download,
-                        onClick = { if (pauseResumeEnabled) onPauseResumeClick() },
+                        onClick = { if (startActionEnabled) onStartAction() },
                     )
                 } else if (hasPartialDownload) {
                     GamepadAction(
                         button = GamepadButton.START,
                         labelResId = R.string.resume_download,
-                        onClick = { if (pauseResumeEnabled) onPauseResumeClick() },
+                        onClick = { if (startActionEnabled) onStartAction() },
                     )
                 } else {
                     GamepadAction(
                         button = GamepadButton.START,
                         labelResId = R.string.install_app,
-                        onClick = { if (buttonEnabled) onDownloadInstallClick() },
+                        onClick = { if (startActionEnabled) onStartAction() },
                     )
                 },
                 GamepadAction(

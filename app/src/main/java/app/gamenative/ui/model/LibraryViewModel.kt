@@ -70,8 +70,8 @@ class LibraryViewModel @Inject constructor(
     }
 
     // How many items loaded on one page of results
-    @Volatile private var paginationCurrentPage: Int = 0
-    @Volatile private var lastPageInCurrentFilter: Int = 0
+    private var paginationCurrentPage: Int = 0
+    private var lastPageInCurrentFilter: Int = 0
 
     // Complete and unfiltered app list
     private var appList: List<SteamApp> = emptyList()
@@ -350,7 +350,7 @@ class LibraryViewModel @Inject constructor(
                     val installedOnly = currentState.currentTab.installedOnly ||
                         currentState.appInfoSortType.contains(AppFilter.INSTALLED)
                     if (installedOnly) {
-                        downloadDirectoryApps.contains(SteamService.getAppDirName(item))
+                        downloadDirectorySet.contains(SteamService.getAppDirName(item))
                     } else {
                         true
                     }
@@ -454,7 +454,7 @@ class LibraryViewModel @Inject constructor(
                 LibraryEntry(
                     item = LibraryItem(
                         index = 0,
-                        appId = "EPIC_${game.id}",
+                        appId = "${GameSource.EPIC.name}_${game.id}",
                         name = game.title,
                         iconHash = game.artCover,
                         isShared = false,

@@ -41,7 +41,10 @@ import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.StarHalf
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.HorizontalDivider
@@ -221,11 +224,11 @@ private fun StatusOption(
             modifier = Modifier.weight(1f),
         )
         if (isSelected) {
-            Text(
-                text = "✓",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp),
             )
         }
     }
@@ -307,7 +310,7 @@ fun SystemMenu(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.7f))
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f))
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -447,7 +450,7 @@ fun SystemMenu(
                             // Name and status
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = persona?.name ?: "User",
+                                    text = persona?.name ?: stringResource(R.string.default_user_name),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface,
@@ -478,7 +481,11 @@ fun SystemMenu(
                             // Dropdown indicator (only when online)
                             if (!isOffline) {
                                 Icon(
-                                    imageVector = if (showStatusPicker) Icons.Default.Close else Icons.Default.Person,
+                                    imageVector = if (showStatusPicker) {
+                                        Icons.Default.KeyboardArrowUp
+                                    } else {
+                                        Icons.Default.KeyboardArrowDown
+                                    },
                                     contentDescription = null,
                                     modifier = Modifier.size(20.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,

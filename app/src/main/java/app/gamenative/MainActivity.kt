@@ -88,7 +88,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private val onSetSystemUi: (AndroidEvent.SetSystemUIVisibility) -> Unit = {
-        AppUtils.hideSystemUI(this, !it.visible)
+        desiredSystemUiVisible = it.visible
+        applyImmersiveMode()
     }
 
     private val onSetAllowedOrientation: (AndroidEvent.SetAllowedOrientation) -> Unit = {
@@ -111,6 +112,7 @@ class MainActivity : ComponentActivity() {
 
     // Add a property to keep a reference to the orientation sensor listener
     private var orientationSensorListener: OrientationEventListener? = null
+    private var desiredSystemUiVisible: Boolean = false
 
     override fun attachBaseContext(newBase: Context) {
         // Initialize PrefManager to read language setting
@@ -270,7 +272,9 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         // Re-apply immersive mode to ensure fullscreen persists
-        applyImmersiveMode()
+        if (!desiredSystemUiVisible) {
+            applyImmersiveMode()
+        }
 
         // disable auto-stop when returning to foreground
         SteamService.autoStopWhenIdle = false
@@ -425,6 +429,22 @@ class MainActivity : ComponentActivity() {
      * Must be called in multiple lifecycle methods to ensure bars stay hidden.
      */
     private fun applyImmersiveMode() {
+        if (desiredSystemUiVisible) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                window.setDecorFitsSystemWindows(true)
+                window.insetsController?.show(
+                    android.view.WindowInsets.Type.statusBars() or
+                        android.view.WindowInsets.Type.navigationBars(),
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                run {
+                    window.decorView.systemUiVisibility = android.view.View.SYSTEM_UI_FLAG_VISIBLE
+                }
+            }
+            return
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Use WindowInsetsController for Android 11+
             window.setDecorFitsSystemWindows(false) // TODO: look into the proper way of doing this
@@ -454,7 +474,7 @@ class MainActivity : ComponentActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         // Re-apply immersive mode when window gains focus to ensure bars stay hidden
-        if (hasFocus) {
+        if (hasFocus && !desiredSystemUiVisible) {
             applyImmersiveMode()
         }
     }

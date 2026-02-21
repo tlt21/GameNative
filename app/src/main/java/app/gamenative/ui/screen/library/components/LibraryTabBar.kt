@@ -208,7 +208,7 @@ private fun CompactLibraryTabBar(
                     ) {
                         val count = tabCounts[tab]
                         val label = if (count != null && count > 0) {
-                            "${stringResource(tab.labelResId)} ($count)"
+                            stringResource(R.string.library_tab_with_count, stringResource(tab.labelResId), count)
                         } else {
                             stringResource(tab.labelResId)
                         }
@@ -564,7 +564,7 @@ private fun TabItem(
     )
 
     val label = if (count != null && count > 0) {
-        "${stringResource(tab.labelResId)} ($count)"
+        stringResource(R.string.library_tab_with_count, stringResource(tab.labelResId), count)
     } else {
         stringResource(tab.labelResId)
     }

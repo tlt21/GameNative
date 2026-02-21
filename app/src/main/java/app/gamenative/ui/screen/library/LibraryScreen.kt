@@ -39,6 +39,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.focusable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -289,6 +290,7 @@ private fun LibraryScreenContent(
             .background(MaterialTheme.colorScheme.background)
             .then(safePaddingModifier)
             .focusRequester(rootFocusRequester)
+            .focusable()
             .focusGroup()
             .onPreviewKeyEvent { keyEvent ->
                 // TODO: consider abstracting this
@@ -583,14 +585,14 @@ private fun LibraryScreenContent(
                             folderPicker.launchPicker()
                         },
                     ) {
-                        Text("OK")
+                        Text(stringResource(android.R.string.ok))
                     }
                 },
                 dismissButton = {
                     TextButton(
                         onClick = { showAddCustomGameDialog = false },
                     ) {
-                        Text("Cancel")
+                        Text(stringResource(android.R.string.cancel))
                     }
                 },
             )

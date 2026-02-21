@@ -191,6 +191,19 @@ private fun resolveGameAppId(appId: String): GameResolutionResult {
     )
 }
 
+private fun resolveNotInstalledGameName(context: Context, appId: String, gameId: Int): String {
+    return when (ContainerUtils.extractGameSourceFromContainerId(appId)) {
+        GameSource.STEAM -> SteamService.getAppInfoOf(gameId)?.name
+        GameSource.GOG -> GOGService.getGOGGameOf(gameId.toString())?.title
+        GameSource.EPIC -> EpicService.getEpicGameOf(gameId)?.title
+        GameSource.CUSTOM_GAME -> {
+            val customAppId = "${GameSource.CUSTOM_GAME.name}_$gameId"
+            CustomGameScanner.getFolderPathFromAppId(customAppId)
+                ?.let { java.io.File(it).name }
+        }
+    } ?: context.getString(R.string.unknown_app)
+}
+
 @Composable
 fun PluviaMain(
     viewModel: MainViewModel = hiltViewModel(),
@@ -278,7 +291,7 @@ fun PluviaMain(
                         }
 
                         is GameResolutionResult.NotFound -> {
-                            val appName = SteamService.getAppInfoOf(resolution.gameId)?.name ?: "App ${event.appId}"
+                            val appName = resolveNotInstalledGameName(context, resolution.originalAppId, resolution.gameId)
                             Timber.w("[PluviaMain]: Game not installed: $appName (${event.appId})")
                             msgDialogState = MessageDialogState(
                                 visible = true,
@@ -322,7 +335,7 @@ fun PluviaMain(
                                         .i("Processing pending launch request for app ${launchRequest.appId} (user is now logged in)")
                                     when (val resolution = resolveGameAppId(launchRequest.appId)) {
                                         is GameResolutionResult.NotFound -> {
-                                            val appName = SteamService.getAppInfoOf(resolution.gameId)?.name ?: "App ${launchRequest.appId}"
+                                            val appName = resolveNotInstalledGameName(context, resolution.originalAppId, resolution.gameId)
                                             Timber.tag("IntentLaunch").w("Game not installed: $appName (${launchRequest.appId})")
                                             msgDialogState = MessageDialogState(
                                                 visible = true,

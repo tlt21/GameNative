@@ -198,7 +198,7 @@ private fun SearchBarInput(
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = "Close search",
+                contentDescription = stringResource(R.string.library_search_close),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp),
             )
