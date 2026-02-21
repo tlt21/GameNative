@@ -697,7 +697,7 @@ object ContainerUtils {
 
         // Check for cached best config (only for Steam games, only if no custom config provided)
         var bestConfigMap: Map<String, Any?>? = null
-        if (gameSource == GameSource.STEAM && customConfig == null) {
+        if (gameSource == GameSource.STEAM && customConfig == null && PrefManager.autoApplyKnownConfig) {
             try {
                 val gameId = extractGameIdFromContainerId(appId)
                 val appInfo = SteamService.getAppInfoOf(gameId)
