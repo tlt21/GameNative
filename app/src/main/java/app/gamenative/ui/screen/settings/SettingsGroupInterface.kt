@@ -236,11 +236,9 @@ fun SettingsGroupInterface(
         autoEntries + otherEntries.sortedBy { it.second }
     }
     var openRegionDialog by rememberSaveable { mutableStateOf(false) }
-    var selectedRegionIndex by rememberSaveable {
-        mutableStateOf(
-            steamRegionsList.indexOfFirst { it.first == PrefManager.cellId }.takeIf { it >= 0 } ?: 0,
-        )
-    }
+    var selectedRegionIndex by rememberSaveable { mutableStateOf(
+        steamRegionsList.indexOfFirst { it.first == PrefManager.cellId }.takeIf { it >= 0 } ?: 0
+    ) }
 
     // GOG login state
     var gogLoginLoading by rememberSaveable { mutableStateOf(false) }
@@ -541,7 +539,7 @@ fun SettingsGroupInterface(
         val downloadSpeedValues = remember { listOf(8, 16, 24, 32) }
         var downloadSpeedValue by rememberSaveable {
             mutableStateOf(
-                downloadSpeedValues.indexOf(PrefManager.downloadSpeed).takeIf { it >= 0 }?.toFloat() ?: 2f,
+                downloadSpeedValues.indexOf(PrefManager.downloadSpeed).takeIf { it >= 0 }?.toFloat() ?: 2f
             )
         }
         Column(
@@ -572,7 +570,7 @@ fun SettingsGroupInterface(
             // Labels below slider
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 downloadSpeedLabels.forEach { label ->
                     Text(
@@ -580,7 +578,7 @@ fun SettingsGroupInterface(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.width(60.dp),
+                        modifier = Modifier.width(60.dp)
                     )
                 }
             }

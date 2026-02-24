@@ -95,13 +95,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-/**
- * Navigates from the LoginUser screen to the target route, popping the login screen from the stack.
- * Only navigates if currently on the LoginUser screen.
- *
- * @param targetRoute The route to navigate to
- * @param logTag Optional tag for logging the navigation
- */
 private fun NavHostController.navigateFromLoginIfNeeded(
     targetRoute: String,
     logTag: String = "PluviaMain",
@@ -117,42 +110,19 @@ private fun NavHostController.navigateFromLoginIfNeeded(
     }
 }
 
-/**
- * Result of resolving a game app ID to determine the correct format and installation status.
- */
 private sealed class GameResolutionResult {
-    /**
-     * Game was resolved successfully.
-     * @param finalAppId The resolved app ID (may be different from original if it's a custom game)
-     * @param gameId The extracted numeric game ID
-     * @param isSteamInstalled Whether this is an installed Steam game
-     * @param isCustomGame Whether this is a custom game
-     */
     data class Success(
         val finalAppId: String,
         val gameId: Int,
         val isSteamInstalled: Boolean,
         val isCustomGame: Boolean,
     ) : GameResolutionResult()
-
-    /**
-     * Game was not found - neither installed as Steam game nor as custom game.
-     * @param gameId The extracted numeric game ID
-     * @param originalAppId The original app ID that was passed in
-     */
     data class NotFound(
         val gameId: Int,
         val originalAppId: String,
     ) : GameResolutionResult()
 }
 
-/**
- * Resolves an app ID to determine the correct game source and format.
- * Checks both Steam installation status and custom game registry.
- *
- * @param appId The app ID to resolve (format: "STEAM_<id>" or "CUSTOM_GAME_<id>")
- * @return GameResolutionResult indicating success with resolved ID or not found
- */
 private fun resolveGameAppId(appId: String): GameResolutionResult {
     val gameSource = ContainerUtils.extractGameSourceFromContainerId(appId)
     val gameId = ContainerUtils.extractGameIdFromContainerId(appId)
@@ -174,10 +144,10 @@ private fun resolveGameAppId(appId: String): GameResolutionResult {
         }
     }
 
-    if(!isInstalled){
+    if (!isInstalled) {
         return GameResolutionResult.NotFound(
             gameId = gameId,
-            originalAppId = appId
+            originalAppId = appId,
         )
     }
 
