@@ -55,7 +55,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -66,8 +65,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -92,13 +89,6 @@ import app.gamenative.ui.enums.ConnectionState
 import app.gamenative.ui.model.UserLoginViewModel
 import app.gamenative.ui.theme.PluviaTheme
 
-/**
- * Login screen for Steam authentication.
- *
- * @param connectionState The current connection state to Steam servers (from MainViewModel).
- * @param onRetryConnection Called when user wants to retry Steam connection.
- * @param onContinueOffline Called when user wants to continue in offline mode.
- */
 @Composable
 fun UserLoginScreen(
     connectionState: ConnectionState,
@@ -149,12 +139,8 @@ private fun UserLoginScreenContent(
     onRetryConnection: () -> Unit,
     onContinueOffline: () -> Unit,
 ) {
-    val context = LocalContext.current
     val primaryColor = MaterialTheme.colorScheme.primary
     val tertiaryColor = MaterialTheme.colorScheme.tertiary
-
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val density = LocalDensity.current
 
     Box(
         modifier = Modifier
