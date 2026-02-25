@@ -72,6 +72,7 @@ import app.gamenative.ui.enums.PaneType
 import app.gamenative.ui.enums.SortOption
 import app.gamenative.ui.internal.fakeAppInfo
 import app.gamenative.ui.model.LibraryViewModel
+import app.gamenative.ui.screen.library.components.LibraryCarouselPane
 import app.gamenative.ui.screen.library.components.LibraryDetailPane
 import app.gamenative.ui.screen.library.components.LibraryListPane
 import app.gamenative.ui.screen.library.components.LibraryOptionsPanel
@@ -392,18 +393,34 @@ private fun LibraryScreenContent(
             // Use Box to allow content to scroll behind the tab bar
             Box(modifier = Modifier.fillMaxSize()) {
                 // Library list (content scrolls behind tab bar)
-                LibraryListPane(
-                    state = state,
-                    listState = listState,
-                    currentLayout = currentPaneType,
-                    firstGridItemFocusRequester = gridFirstItemFocusRequester,
-                    focusTargetListIndex = gridFocusTargetListIndex,
-                    onPageChange = onPageChange,
-                    onNavigate = { appId -> selectedAppId = appId
-                        selectedLibraryItem = state.appInfoList.find { it.appId == appId }  },
-                    onRefresh = onRefresh,
-                    modifier = Modifier.fillMaxSize(),
-                )
+                if (currentPaneType == PaneType.CAROUSEL) {
+                    LibraryCarouselPane(
+                        state = state,
+                        listState = listState,
+                        onPageChange = onPageChange,
+                        onNavigate = { appId ->
+                            selectedAppId = appId
+                            selectedLibraryItem = state.appInfoList.find { it.appId == appId }
+                        },
+                        onRefresh = onRefresh,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else {
+                    LibraryListPane(
+                        state = state,
+                        listState = listState,
+                        currentLayout = currentPaneType,
+                        firstGridItemFocusRequester = gridFirstItemFocusRequester,
+                        focusTargetListIndex = gridFocusTargetListIndex,
+                        onPageChange = onPageChange,
+                        onNavigate = { appId ->
+                            selectedAppId = appId
+                            selectedLibraryItem = state.appInfoList.find { it.appId == appId }
+                        },
+                        onRefresh = onRefresh,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
 
                 // Top overlay: Tab bar OR Search bar
                 if (state.isSearching) {
