@@ -44,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -241,15 +240,6 @@ private fun LibraryScreenContent(
         selectedLibraryItem = null
     }
 
-    // Refresh list when navigating back from detail view
-    LaunchedEffect(selectedAppId) {
-        if (selectedAppId == null) {
-            // Trigger refresh by calling onSearchQuery with current query
-            // This will call onFilterApps() which re-scans Custom Games
-            val currentQuery = state.searchQuery
-            onSearchQuery(currentQuery)
-        }
-    }
 
     // Apply top padding differently for list vs game detail pages.
     // On the game page we want to hide the top padding when the status bar is hidden.
@@ -446,49 +436,6 @@ private fun LibraryScreenContent(
                     false
                 }
             }
-            // Fallback: if D-pad/stick wasn't consumed, restore focus to content
-            .onKeyEvent { keyEvent ->
-                if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_DOWN &&
-                    selectedAppId == null && !isSystemMenuOpen && !state.isOptionsPanelOpen
-                ) {
-                    when (keyEvent.nativeKeyEvent.keyCode) {
-                        KeyEvent.KEYCODE_DPAD_UP,
-                        KeyEvent.KEYCODE_DPAD_DOWN,
-                        KeyEvent.KEYCODE_DPAD_LEFT,
-                        KeyEvent.KEYCODE_DPAD_RIGHT,
-                        -> {
-                            // D-pad event wasn't consumed by any child - focus was lost
-                            // Restore focus immediately to appropriate content
-                            if (state.appInfoList.isNotEmpty()) {
-                                if (currentPaneType == PaneType.CAROUSEL) {
-                                    try {
-                                        carouselFocusRequester.requestFocus()
-                                    } catch (_: IllegalStateException) {
-                                        pendingCarouselFocusRequest = true
-                                    }
-                                } else {
-                                    gridFocusTargetListIndex = listState.firstVisibleItemIndex
-                                        .coerceIn(0, state.appInfoList.lastIndex)
-                                    try {
-                                        gridFirstItemFocusRequester.requestFocus()
-                                    } catch (_: IllegalStateException) {
-                                        pendingGridFocusRequest = true
-                                    }
-                                }
-                            } else {
-                                try {
-                                    rootFocusRequester.requestFocus()
-                                } catch (_: IllegalStateException) {}
-                            }
-                            // Return true - focus is now restored, next D-pad will work
-                            true
-                        }
-                        else -> false
-                    }
-                } else {
-                    false
-                }
-            },
     ) {
         if (selectedAppId == null) {
             // Use Box to allow content to scroll behind the tab bar
