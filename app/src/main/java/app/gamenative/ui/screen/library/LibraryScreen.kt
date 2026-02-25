@@ -240,6 +240,34 @@ private fun LibraryScreenContent(
         selectedLibraryItem = null
     }
 
+    // Restore focus when returning from game detail (without reloading list)
+    LaunchedEffect(selectedAppId) {
+        if (selectedAppId == null) {
+            // Brief delay to let the UI settle after transition
+            kotlinx.coroutines.delay(100)
+            // Restore focus to content area
+            if (state.appInfoList.isNotEmpty()) {
+                if (currentPaneType == PaneType.CAROUSEL) {
+                    try {
+                        carouselFocusRequester.requestFocus()
+                    } catch (_: IllegalStateException) {
+                        pendingCarouselFocusRequest = true
+                    }
+                } else {
+                    try {
+                        gridFirstItemFocusRequester.requestFocus()
+                    } catch (_: IllegalStateException) {
+                        pendingGridFocusRequest = true
+                    }
+                }
+            } else {
+                try {
+                    rootFocusRequester.requestFocus()
+                } catch (_: IllegalStateException) {}
+            }
+        }
+    }
+
 
     // Apply top padding differently for list vs game detail pages.
     // On the game page we want to hide the top padding when the status bar is hidden.
@@ -256,26 +284,32 @@ private fun LibraryScreenContent(
         Modifier
     }
 
-    // Recapture focus on the root container when the list becomes empty (e.g. switching to
-    // an empty tab), so bumper key events keep working even when there are no grid items.
-    // Use currentTab as a key to ensure focus is recaptured on EVERY tab change when empty.
-    // Request focus multiple times with increasing delays to handle race conditions.
+    // Restore focus after tab change - handles both empty and populated tabs
     LaunchedEffect(state.currentTab) {
+        // Brief delay to let list populate after tab change
+        kotlinx.coroutines.delay(150)
+
         if (state.appInfoList.isEmpty()) {
-            // Request focus immediately
+            // Empty tab - focus root so bumpers still work
             try {
                 rootFocusRequester.requestFocus()
             } catch (_: IllegalStateException) {}
-            // Request again after a short delay to handle composition timing
-            kotlinx.coroutines.delay(50)
-            try {
-                rootFocusRequester.requestFocus()
-            } catch (_: IllegalStateException) {}
-            // Final attempt after longer delay
-            kotlinx.coroutines.delay(100)
-            try {
-                rootFocusRequester.requestFocus()
-            } catch (_: IllegalStateException) {}
+        } else {
+            // Tab has content - focus the content area
+            if (currentPaneType == PaneType.CAROUSEL) {
+                try {
+                    carouselFocusRequester.requestFocus()
+                } catch (_: IllegalStateException) {
+                    pendingCarouselFocusRequest = true
+                }
+            } else {
+                gridFocusTargetListIndex = 0
+                try {
+                    gridFirstItemFocusRequester.requestFocus()
+                } catch (_: IllegalStateException) {
+                    pendingGridFocusRequest = true
+                }
+            }
         }
     }
 
@@ -306,7 +340,7 @@ private fun LibraryScreenContent(
         val systemMenuJustClosed = wasSystemMenuOpen && !isSystemMenuOpen
         val optionsPanelJustClosed = wasOptionsPanelOpen && !state.isOptionsPanelOpen
 
-        if (systemMenuJustClosed || optionsPanelJustClosed) {
+        if ((systemMenuJustClosed || optionsPanelJustClosed) && !state.isSearching) {
             // Give a brief moment for the overlay to animate out
             kotlinx.coroutines.delay(50)
             // Restore focus to carousel or grid based on current layout
