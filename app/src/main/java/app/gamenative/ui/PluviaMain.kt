@@ -71,6 +71,7 @@ import app.gamenative.ui.screen.xserver.XServerScreen
 import app.gamenative.ui.theme.PluviaTheme
 import app.gamenative.utils.BestConfigService
 import app.gamenative.utils.ContainerUtils
+import app.gamenative.utils.PlatformAuthUtils
 import app.gamenative.utils.CustomGameScanner
 import app.gamenative.utils.ManifestInstaller
 import app.gamenative.utils.GameFeedbackUtils
@@ -524,8 +525,18 @@ fun PluviaMain(
 
             // Handle navigation when already logged in (e.g., app resumed with active session)
             // Only navigate if currently on LoginUser screen to avoid disrupting user's current view
-            if (SteamService.isLoggedIn && !SteamService.keepAlive) {
-                val targetRoute = viewModel.getPersistedRoute() ?: PluviaScreen.Home.route
+            if (PlatformAuthUtils.isSignedInToAnyPlatform(context) && !SteamService.keepAlive) {
+                val baseRoute = viewModel.getPersistedRoute() ?: PluviaScreen.Home.route
+                val targetRoute = if (SteamService.isLoggedIn) {
+                    baseRoute
+                } else {
+                    // Non-Steam platforms: ensure offline param for Home
+                    if (baseRoute.startsWith(PluviaScreen.Home.route)) {
+                        PluviaScreen.Home.route + "?offline=true"
+                    } else {
+                        baseRoute
+                    }
+                }
                 navController.navigateFromLoginIfNeeded(targetRoute, "ResumeSession")
             }
         }
@@ -1046,9 +1057,18 @@ fun PluviaMain(
             }
         }
 
+        val startDestination = when {
+            SteamService.isLoggedIn -> PluviaScreen.Home.route + "?offline=false"
+            GOGService.hasStoredCredentials(context) ||
+                EpicService.hasStoredCredentials(context) ||
+                AmazonService.hasStoredCredentials(context) ->
+                PluviaScreen.Home.route + "?offline=true"
+            else -> PluviaScreen.LoginUser.route
+        }
+
         NavHost(
             navController = navController,
-            startDestination = PluviaScreen.LoginUser.route,
+            startDestination = startDestination,
         ) {
             /** Login **/
             composable(route = PluviaScreen.LoginUser.route) {
