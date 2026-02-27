@@ -366,43 +366,6 @@ fun PluviaMain(
                             } else if (PluviaApp.xEnvironment == null) {
                                 val targetRoute = viewModel.getPersistedRoute() ?: PluviaScreen.Home.route
                                 navController.navigateFromLoginIfNeeded(targetRoute, "LogonEnded")
-                                // Show dialogs regardless of navigation
-                                val currentUpdateInfo = updateInfo
-                                if (currentUpdateInfo != null) {
-                                    viewModel.setAnnoyingDialogShown(true)
-                                    msgDialogState = MessageDialogState(
-                                        visible = true,
-                                        type = DialogType.APP_UPDATE,
-                                        title = context.getString(R.string.main_update_available_title),
-                                        message = context.getString(
-                                            R.string.main_update_available_message,
-                                            currentUpdateInfo.versionName,
-                                            currentUpdateInfo.releaseNotes?.let { "\n\n$it" } ?: "",
-                                        ),
-                                        confirmBtnText = context.getString(R.string.main_update_button),
-                                        dismissBtnText = context.getString(R.string.main_later_button),
-                                    )
-                                } else if (!state.annoyingDialogShown && state.hasCrashedLastStart) {
-                                    viewModel.setAnnoyingDialogShown(true)
-                                    msgDialogState = MessageDialogState(
-                                        visible = true,
-                                        type = DialogType.CRASH,
-                                        title = context.getString(R.string.main_recent_crash_title),
-                                        message = context.getString(R.string.main_recent_crash_message),
-                                        confirmBtnText = context.getString(R.string.ok),
-                                    )
-                                } else if (!(PrefManager.tipped || BuildConfig.GOLD) && !state.annoyingDialogShown) {
-                                    viewModel.setAnnoyingDialogShown(true)
-                                    msgDialogState = MessageDialogState(
-                                        visible = true,
-                                        type = DialogType.SUPPORT,
-                                        title = context.getString(R.string.main_thank_you_title),
-                                        message = context.getString(R.string.main_thank_you_message),
-                                        confirmBtnText = context.getString(R.string.main_join_kofi),
-                                        dismissBtnText = context.getString(R.string.close),
-                                        actionBtnText = context.getString(R.string.main_share),
-                                    )
-                                }
                             }
                         }
 
@@ -1097,6 +1060,53 @@ fun PluviaMain(
                 ),
             ) { backStackEntry ->
                 val isOffline = backStackEntry.arguments?.getBoolean("offline") ?: false
+
+                // Show update/crash/support dialogs when Home is first displayed
+                // Skip when offline with Steam credentials (avoid flash when Steam reconnects)
+                LaunchedEffect(Unit) {
+                    val hasSteamCredentials = PrefManager.refreshToken.isNotEmpty() && PrefManager.username.isNotEmpty()
+                    val shouldShowDialogs = !isOffline || !hasSteamCredentials
+
+                    if (shouldShowDialogs && !state.annoyingDialogShown && PluviaApp.xEnvironment == null && !SteamService.keepAlive) {
+                        val currentUpdateInfo = updateInfo
+                        if (currentUpdateInfo != null) {
+                            viewModel.setAnnoyingDialogShown(true)
+                            msgDialogState = MessageDialogState(
+                                visible = true,
+                                type = DialogType.APP_UPDATE,
+                                title = context.getString(R.string.main_update_available_title),
+                                message = context.getString(
+                                    R.string.main_update_available_message,
+                                    currentUpdateInfo.versionName,
+                                    currentUpdateInfo.releaseNotes?.let { "\n\n$it" } ?: "",
+                                ),
+                                confirmBtnText = context.getString(R.string.main_update_button),
+                                dismissBtnText = context.getString(R.string.main_later_button),
+                            )
+                        } else if (state.hasCrashedLastStart) {
+                            viewModel.setAnnoyingDialogShown(true)
+                            msgDialogState = MessageDialogState(
+                                visible = true,
+                                type = DialogType.CRASH,
+                                title = context.getString(R.string.main_recent_crash_title),
+                                message = context.getString(R.string.main_recent_crash_message),
+                                confirmBtnText = context.getString(R.string.ok),
+                            )
+                        } else if (!(PrefManager.tipped || BuildConfig.GOLD)) {
+                            viewModel.setAnnoyingDialogShown(true)
+                            msgDialogState = MessageDialogState(
+                                visible = true,
+                                type = DialogType.SUPPORT,
+                                title = context.getString(R.string.main_thank_you_title),
+                                message = context.getString(R.string.main_thank_you_message),
+                                confirmBtnText = context.getString(R.string.main_join_kofi),
+                                dismissBtnText = context.getString(R.string.close),
+                                actionBtnText = context.getString(R.string.main_share),
+                            )
+                        }
+                    }
+                }
+
                 HomeScreen(
                     onClickPlay = { appId, asContainer ->
                         viewModel.setLaunchedAppId(appId)

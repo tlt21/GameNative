@@ -9,7 +9,6 @@ import app.gamenative.PluviaApp
 import app.gamenative.PrefManager
 import app.gamenative.data.GameProcessInfo
 import app.gamenative.data.GameSource
-import app.gamenative.data.LibraryItem
 import app.gamenative.di.IAppTheme
 import app.gamenative.enums.AppTheme
 import app.gamenative.enums.LoginResult
@@ -17,7 +16,6 @@ import app.gamenative.enums.PathType
 import app.gamenative.events.AndroidEvent
 import app.gamenative.events.SteamEvent
 import app.gamenative.service.SteamService
-import app.gamenative.service.epic.EpicCloudSavesManager
 import app.gamenative.ui.data.MainState
 import app.gamenative.ui.enums.ConnectionState
 import app.gamenative.ui.screen.PluviaScreen
@@ -210,7 +208,7 @@ class MainViewModel @Inject constructor(
             PluviaScreen.XServer.route -> PluviaScreen.XServer
             PluviaScreen.Settings.route -> PluviaScreen.Settings
             PluviaScreen.Chat.route -> PluviaScreen.Chat
-            else -> PluviaScreen.LoginUser
+            else -> null
         }
 
         // Determine initial connection state based on service state
