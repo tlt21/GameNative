@@ -153,26 +153,26 @@ fun QuickMenu(
         AnimatedVisibility(
             visible = isVisible,
             enter = slideInHorizontally(
-                initialOffsetX = { fullWidth -> fullWidth },
+                initialOffsetX = { fullWidth -> -fullWidth },
                 animationSpec = spring(
                     dampingRatio = Spring.DampingRatioLowBouncy,
                     stiffness = Spring.StiffnessMediumLow
                 )
             ),
             exit = slideOutHorizontally(
-                targetOffsetX = { fullWidth -> fullWidth },
+                targetOffsetX = { fullWidth -> -fullWidth },
                 animationSpec = spring(
                     dampingRatio = Spring.DampingRatioNoBouncy,
                     stiffness = Spring.StiffnessMedium
                 )
             ),
-            modifier = Modifier.align(Alignment.CenterEnd)
+            modifier = Modifier.align(Alignment.CenterStart)
         ) {
             Surface(
                 modifier = Modifier
                     .width(adaptivePanelWidth(280.dp))
                     .fillMaxHeight(),
-                shape = RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp),
+                shape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp),
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 2.dp,
                 shadowElevation = 24.dp,
