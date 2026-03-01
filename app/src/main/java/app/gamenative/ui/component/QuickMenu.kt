@@ -12,6 +12,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +50,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -234,12 +236,16 @@ fun QuickMenu(
         }
     }
 
-    LaunchedEffect(isVisible) {
+    LaunchedEffect(isVisible, menuItems.size) {
         if (isVisible) {
-            try {
-                firstItemFocusRequester.requestFocus()
-            } catch (_: Exception) {
-                // Focus request may fail if composition is not ready
+            repeat(3) {
+                try {
+                    firstItemFocusRequester.requestFocus()
+                    return@LaunchedEffect
+                } catch (_: Exception) {
+                    // Focus request may fail if composition is not ready.
+                    delay(80)
+                }
             }
         }
     }
@@ -285,6 +291,7 @@ private fun QuickMenuItemRow(
                     Modifier.focusRequester(focusRequester)
                 } else Modifier
             )
+            .focusable(enabled = isEnabled, interactionSource = interactionSource)
             .selectable(
                 selected = isFocused,
                 enabled = isEnabled,

@@ -630,32 +630,42 @@ fun XServerScreen(
             val isGamepad = ExternalController.isGameController(it.event.device)
             // logD("onKeyEvent(${it.event.device.sources})\n\tisGamepad: $isGamepad\n\tisKeyboard: $isKeyboard\n\t${it.event}")
 
-            var handled = false
-            if (isGamepad) {
-                handled = physicalControllerHandler?.onKeyEvent(it.event) == true
-                if (!handled) handled = PluviaApp.inputControlsView?.onKeyEvent(it.event) == true
-                // Final fallback to WinHandler passthrough
-                if (!handled) handled = xServerView!!.getxServer().winHandler.onKeyEvent(it.event)
+            if (showQuickMenu && isGamepad) {
+                // Let Compose focus system handle gamepad navigation/selection while menu is visible.
+                false
+            } else {
+                var handled = false
+                if (isGamepad) {
+                    handled = physicalControllerHandler?.onKeyEvent(it.event) == true
+                    if (!handled) handled = PluviaApp.inputControlsView?.onKeyEvent(it.event) == true
+                    // Final fallback to WinHandler passthrough
+                    if (!handled) handled = xServerView!!.getxServer().winHandler.onKeyEvent(it.event)
+                }
+                if (!handled && isKeyboard) {
+                    handled = keyboard?.onKeyEvent(it.event) == true
+                }
+                handled
             }
-            if (!handled && isKeyboard) {
-                handled = keyboard?.onKeyEvent(it.event) == true
-            }
-            handled
         }
         val onMotionEvent: (AndroidEvent.MotionEvent) -> Boolean = {
             val isGamepad = ExternalController.isGameController(it.event?.device)
 
-            var handled = false
-            if (isGamepad && it.event != null) {
-                handled = physicalControllerHandler?.onGenericMotionEvent(it.event!!) == true
-                if (!handled) handled = PluviaApp.inputControlsView?.onGenericMotionEvent(it.event) == true
-                // Final fallback to WinHandler passthrough
-                if (!handled) handled = xServerView!!.getxServer().winHandler.onGenericMotionEvent(it.event)
+            if (showQuickMenu && isGamepad) {
+                // Let Compose consume any gamepad motion while menu is visible.
+                false
+            } else {
+                var handled = false
+                if (isGamepad && it.event != null) {
+                    handled = physicalControllerHandler?.onGenericMotionEvent(it.event!!) == true
+                    if (!handled) handled = PluviaApp.inputControlsView?.onGenericMotionEvent(it.event) == true
+                    // Final fallback to WinHandler passthrough
+                    if (!handled) handled = xServerView!!.getxServer().winHandler.onGenericMotionEvent(it.event)
+                }
+                if (!handled) {
+                    handled = PluviaApp.touchpadView?.onExternalMouseEvent(it.event) == true
+                }
+                handled
             }
-            if (!handled) {
-                handled = PluviaApp.touchpadView?.onExternalMouseEvent(it.event) == true
-            }
-            handled
         }
         val onGuestProgramTerminated: (AndroidEvent.GuestProgramTerminated) -> Unit = {
             Timber.i("onGuestProgramTerminated")
