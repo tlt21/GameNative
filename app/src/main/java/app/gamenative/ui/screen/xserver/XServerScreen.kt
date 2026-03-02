@@ -1949,6 +1949,11 @@ private fun setupXEnvironment(
     }
 
     if (container != null) {
+        try {
+            GameFixesRegistry.applyFor(context, appId)
+        } catch (e: Exception) {
+            Timber.tag("GameFixes").w(e, "Game fixes failed before launch")
+        }
         if (container.startupSelection == Container.STARTUP_SELECTION_AGGRESSIVE) {
             if (container.containerVariant.equals(Container.BIONIC)){
                 Timber.d("Incorrect startup selection detected. Reverting to essential startup selection")
@@ -2021,11 +2026,6 @@ private fun setupXEnvironment(
             guestProgramLauncherComponent.setFEXCorePreset(container.fexCorePreset)
         }
         guestProgramLauncherComponent.setPreUnpack {
-            try {
-                GameFixesRegistry.applyFor(context, appId)
-            } catch (e: Exception) {
-                Timber.tag("GameFixes").w(e, "Game fixes failed in preUnpack")
-            }
             unpackExecutableFile(
                 context = context,
                 needsUnpacking = container.isNeedsUnpacking,
