@@ -3,6 +3,7 @@ package app.gamenative.utils.launchdependencies
 import android.content.Context
 import app.gamenative.data.GameSource
 import com.winlator.container.Container
+import java.io.File
 
 /**
  * Receives step content and runs it (builds full guest executable, sets on launcher, starts).
@@ -47,4 +48,17 @@ interface LaunchStep {
 
     /** Unique id for this step (used as persistence key when [runOnce] is true). Defaults to the step's class simple name. */
     val stepId: String? get() = if (runOnce) this::class.java.simpleName else null
+
+    /**
+     * Convenience helper for launch steps that treat the A: drive as the game directory,
+     * resolving it to a host directory (or null if not mapped).
+     */
+    fun getGameDir(container: Container): File? {
+        for (drive in Container.drivesIterator(container.drives)) {
+            if (drive[0].equals("A", ignoreCase = true)) {
+                return File(drive[1])
+            }
+        }
+        return null
+    }
 }

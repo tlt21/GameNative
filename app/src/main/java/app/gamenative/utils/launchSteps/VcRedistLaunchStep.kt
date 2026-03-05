@@ -4,7 +4,6 @@ import android.content.Context
 import app.gamenative.data.GameSource
 import app.gamenative.utils.LaunchSteps
 import com.winlator.container.Container
-import com.winlator.xenvironment.ImageFs
 import java.io.File
 
 /**
@@ -14,23 +13,6 @@ import java.io.File
 object VcRedistLaunchStep : LaunchStep {
 
     override val runOnce: Boolean = true
-
-    /** Drive letter -> (context, container, pathUnderDrive) -> host directory. */
-    private val driveMap: Map<String, (Context, Container, String) -> File?> = mapOf(
-        "Z" to { ctx, _, path ->
-            File(ImageFs.find(ctx).getRootDir(), path.replace('\\', '/'))
-        },
-        "A" to { _, container, path ->
-            var out: File? = null
-            for (drive in Container.drivesIterator(container.drives)) {
-                if (drive[0] == "A") {
-                    out = File(drive[1], path.replace('\\', '/'))
-                    break
-                }
-            }
-            out
-        },
-    )
 
     /** Directory + exe (Windows path) -> args. Only entries whose exe exists on host are added. */
     private val vcRedistMap: Map<String, String> = mapOf(
@@ -76,17 +58,16 @@ object VcRedistLaunchStep : LaunchStep {
         stepRunner: StepRunner,
         gameSource: GameSource,
     ): Boolean {
+        val gameDir = getGameDir(container) ?: return false
         val parts = mutableListOf<String>()
         for ((winPath, args) in vcRedistMap) {
             if (winPath.length < 4 || winPath[1] != ':' || winPath[2] != '\\') continue
-            val driveLetter = winPath.substring(0, 1)
             val rest = winPath.substring(3)
             val lastSep = rest.lastIndexOf('\\')
             if (lastSep < 0) continue
             val dirPath = rest.substring(0, lastSep)
             val exeName = rest.substring(lastSep + 1)
-            val resolveDir = driveMap[driveLetter] ?: continue
-            val dir = resolveDir(context, container, dirPath) ?: continue
+            val dir = File(gameDir, dirPath.replace('\\', '/'))
             if (!File(dir, exeName).isFile) continue
             parts.add("$winPath $args")
         }
