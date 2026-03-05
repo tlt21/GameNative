@@ -75,26 +75,26 @@ object LaunchSteps {
                 container.saveData()
             }
 
-            if (pendingSteps.isEmpty()) {
-                // No further steps to run.
-                return@terminationHandler
-            }
+            // Find the next step that actually has content to run.
+            while (pendingSteps.isNotEmpty()) {
+                val next = pendingSteps.first()
+                pendingSteps = pendingSteps.drop(1)
 
-            val next = pendingSteps.first()
-            pendingSteps = pendingSteps.drop(1)
-
-            val stepRunner = object : StepRunner {
-                override fun runStepContent(stepContent: String) {
-                    val executable = buildGameExecutable(stepContent, screenInfo)
-                    runLauncher(launcher, executable)
-                    currentStep = next
+                val stepRunner = object : StepRunner {
+                    override fun runStepContent(stepContent: String) {
+                        val executable = buildGameExecutable(stepContent, screenInfo)
+                        runLauncher(launcher, executable)
+                        currentStep = next
+                    }
                 }
-            }
 
-            if (next.run(context, appId, container, stepRunner, gameSource)) {
-                Timber.i("Launch step done; running next (${pendingSteps.size} remaining)")
-            } else {
-                Timber.i("Launch step skipped; ${pendingSteps.size} remaining")
+                if (next.run(context, appId, container, stepRunner, gameSource)) {
+                    Timber.i("Launch step done; running next (${pendingSteps.size} remaining)")
+                    return@terminationHandler
+                } else {
+                    Timber.i("Launch step skipped; ${pendingSteps.size} remaining")
+                    // Loop to try the next pending step, if any.
+                }
             }
         }
 
