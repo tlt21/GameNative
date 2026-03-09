@@ -499,8 +499,9 @@ class SteamAppScreen : BaseAppScreen() {
     }
 
     override fun isDownloading(context: Context, libraryItem: LibraryItem): Boolean {
-        val downloadInfo = SteamService.getAppDownloadInfo(libraryItem.gameId)
-        return downloadInfo != null && (downloadInfo.getProgress() ?: 0f) < 1f
+        val gameId = libraryItem.gameId
+        return SteamService.getAppDownloadInfo(gameId) != null
+            && !SteamService.isAppInstalled(gameId)
     }
 
     override fun getDownloadProgress(context: Context, libraryItem: LibraryItem): Float {
@@ -629,7 +630,6 @@ class SteamAppScreen : BaseAppScreen() {
                 ),
             )
         } else if (SteamService.hasPartialDownload(gameId)) {
-            // Resume incomplete download
             CoroutineScope(Dispatchers.IO).launch {
                 SteamService.downloadApp(gameId)
             }
@@ -650,10 +650,11 @@ class SteamAppScreen : BaseAppScreen() {
     override fun onPauseResumeClick(context: Context, libraryItem: LibraryItem) {
         val gameId = libraryItem.gameId
         val downloadInfo = SteamService.getAppDownloadInfo(gameId)
-        val isDownloading = downloadInfo != null && (downloadInfo.getProgress() ?: 0f) < 1f
 
-        if (isDownloading) {
-            downloadInfo?.cancel()
+        if (downloadInfo != null) {
+            if (!SteamService.isAppInstalled(gameId)) {
+                downloadInfo.cancel()
+            }
         } else {
             CoroutineScope(Dispatchers.IO).launch {
                 SteamService.downloadApp(gameId)
