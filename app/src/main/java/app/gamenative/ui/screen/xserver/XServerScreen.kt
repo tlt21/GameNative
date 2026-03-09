@@ -76,11 +76,9 @@ import app.gamenative.ui.component.QuickMenu
 import app.gamenative.ui.component.QuickMenuAction
 import app.gamenative.ui.data.XServerState
 import app.gamenative.utils.ContainerUtils
-import app.gamenative.utils.InstallDepsLauncher
-import app.gamenative.utils.LaunchSteps
-import app.gamenative.utils.launchdependencies.GameLaunchStep
-import app.gamenative.utils.ExecutableSelectionUtils
 import app.gamenative.utils.CustomGameScanner
+import app.gamenative.utils.ExecutableSelectionUtils
+import app.gamenative.utils.PreInstallSteps
 import app.gamenative.utils.SteamTokenLogin
 import app.gamenative.utils.SteamUtils
 import com.posthog.PostHog
@@ -1947,6 +1945,9 @@ private fun setupXEnvironment(
         )
     }
 
+    var preInstallCommands: List<String> = emptyList()
+    var gameExecutable = ""
+
     if (container != null) {
         try {
             GameFixesRegistry.applyFor(context, appId)
@@ -1967,37 +1968,14 @@ private fun setupXEnvironment(
         val wow64Mode = container.isWoW64Mode
         guestProgramLauncherComponent.setContainer(container);
         guestProgramLauncherComponent.setWineInfo(xServerState.value.wineInfo);
-        val gameTerminationCallback: (Int) -> Unit = { status ->
-            if (status != 0) {
-                Timber.e("Guest program terminated with status: $status")
-                onGameLaunchError?.invoke("Game terminated with error status: $status")
-            }
-            PluviaApp.events.emit(AndroidEvent.GuestProgramTerminated)
-        }
-        val gameCommand =
-            getWineStartCommand(context, appId, container!!, bootToContainer, testGraphics, appLaunchInfo, envVars, guestProgramLauncherComponent, gameSource) +
-                (if (container.execArgs.isNotEmpty()) " " + container.execArgs else "")
-        val launcher = object : InstallDepsLauncher {
-            override fun setGuestExecutable(executable: String) = guestProgramLauncherComponent.setGuestExecutable(executable)
-            override fun setPreUnpack(block: (() -> Unit)?) = guestProgramLauncherComponent.setPreUnpack(block)
-            override fun execShellCommand(command: String) {
-                guestProgramLauncherComponent.execShellCommand(command)
-            }
-            override fun setTerminationCallback(callback: ((Int) -> Unit)?) {
-                guestProgramLauncherComponent.setTerminationCallback(if (callback != null) Callback { callback(it) } else null)
-            }
-            override fun start() = guestProgramLauncherComponent.start()
-        }
-        LaunchSteps.start(
-            launcher,
-            GameLaunchStep({ gameCommand }, gameTerminationCallback),
-            context,
-            appId,
-            container!!,
-            gameSource,
-            xServer.screenInfo.toString(),
-            containerVariantChanged,
+        gameExecutable = "wine explorer /desktop=shell," + xServer.screenInfo + " " +
+            getWineStartCommand(context, appId, container, bootToContainer, testGraphics, appLaunchInfo, envVars, guestProgramLauncherComponent, gameSource) +
+            (if (container.execArgs.isNotEmpty()) " " + container.execArgs else "")
+        preInstallCommands = PreInstallSteps.getPreInstallCommands(
+            container, appId, gameSource, xServer.screenInfo.toString(), containerVariantChanged,
         )
+        guestProgramLauncherComponent.guestExecutable =
+            preInstallCommands.firstOrNull() ?: gameExecutable
         guestProgramLauncherComponent.isWoW64Mode = wow64Mode
         // Set steam type for selecting appropriate box64rc
         guestProgramLauncherComponent.setSteamType(container.getSteamType())
@@ -2101,6 +2079,42 @@ private fun setupXEnvironment(
     }
 
     guestProgramLauncherComponent.envVars = envVars
+
+    val gameTerminationCallback = Callback<Int> { status ->
+        if (status != 0) {
+            Timber.e("Guest program terminated with status: $status")
+            onGameLaunchError?.invoke("Game terminated with error status: $status")
+            navigateBack()
+        }
+        PluviaApp.events.emit(AndroidEvent.GuestProgramTerminated)
+    }
+
+    fun chainPreInstallSteps(remaining: List<String>) {
+        if (remaining.isEmpty()) {
+            guestProgramLauncherComponent.setGuestExecutable(gameExecutable)
+            guestProgramLauncherComponent.setTerminationCallback(gameTerminationCallback)
+            return
+        }
+        guestProgramLauncherComponent.setGuestExecutable(remaining.first())
+        guestProgramLauncherComponent.setTerminationCallback { _ ->
+            PreInstallSteps.markAllDone(container)
+            guestProgramLauncherComponent.setPreUnpack(null)
+            try {
+                guestProgramLauncherComponent.execShellCommand("wineserver -k")
+            } catch (e: Exception) {
+                Timber.w(e, "wineserver -k between pre-install steps (non-fatal)")
+            }
+            chainPreInstallSteps(remaining.drop(1))
+            guestProgramLauncherComponent.start()
+        }
+    }
+
+    if (preInstallCommands.isNotEmpty()) {
+        chainPreInstallSteps(preInstallCommands)
+    } else {
+        guestProgramLauncherComponent.setTerminationCallback(gameTerminationCallback)
+    }
+
     environment.addComponent(guestProgramLauncherComponent)
 
     environment.addComponent(WineRequestComponent())
