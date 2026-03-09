@@ -1,6 +1,7 @@
 package app.gamenative.utils
 
 import app.gamenative.data.GameSource
+import app.gamenative.enums.Marker
 import app.gamenative.service.gog.GOGService
 import com.winlator.container.Container
 import java.io.File
@@ -12,11 +13,11 @@ import java.io.File
  *
  * Each returned command is a complete guest executable string for one Wine session.
  * The caller chains them via termination callbacks, launching the game after the last one.
+ *
+ * Completion is tracked via marker files in the game directory (not container config),
+ * so importing a container config won't incorrectly skip pre-install steps.
  */
 object PreInstallSteps {
-    private const val MARKER_PREFIX = "pre_install_done_"
-    private const val MARKER_VCREDIST = "vcredist"
-    private const val MARKER_GOG_SCRIPT = "gog_script"
 
     /** Windows path -> installer args, checked against host filesystem to see which exist. */
     private val vcRedistMap: Map<String, String> = mapOf(
@@ -50,6 +51,8 @@ object PreInstallSteps {
         "A:\\_CommonRedist\\VC_redist.x64.exe" to "/install /passive /norestart",
     )
 
+    private val allMarkers = listOf(Marker.VCREDIST_INSTALLED, Marker.GOG_SCRIPT_INSTALLED)
+
     /**
      * Returns a list of guest executable commands for pre-install steps. Each entry is a
      * separate Wine session. Returns empty list if nothing needs installing.
@@ -61,19 +64,22 @@ object PreInstallSteps {
         screenInfo: String,
         containerVariantChanged: Boolean,
     ): List<String> {
-        if (containerVariantChanged) resetMarkers(container)
+        val gameDir = getGameDir(container) ?: return emptyList()
+        val gameDirPath = gameDir.absolutePath
+
+        if (containerVariantChanged) resetMarkers(gameDirPath)
 
         val commands = mutableListOf<String>()
 
-        if (!isDone(container, MARKER_VCREDIST)) {
-            buildVcRedistCommand(container)?.let {
+        if (!MarkerUtils.hasMarker(gameDirPath, Marker.VCREDIST_INSTALLED)) {
+            buildVcRedistCommand(gameDir)?.let {
                 commands.add(wrapAsGuestExecutable(it, screenInfo))
             }
         }
 
         if (gameSource == GameSource.GOG &&
             container.containerVariant.equals(Container.GLIBC) &&
-            !isDone(container, MARKER_GOG_SCRIPT)
+            !MarkerUtils.hasMarker(gameDirPath, Marker.GOG_SCRIPT_INSTALLED)
         ) {
             buildGogScriptCommand(appId)?.let {
                 commands.add(wrapAsGuestExecutable(it, screenInfo))
@@ -84,33 +90,25 @@ object PreInstallSteps {
     }
 
     fun markAllDone(container: Container) {
-        container.putExtra(MARKER_PREFIX + MARKER_VCREDIST, "done")
-        container.putExtra(MARKER_PREFIX + MARKER_GOG_SCRIPT, "done")
-        container.saveData()
-    }
-
-    fun resetMarkers(container: Container) {
-        var changed = false
-        for (marker in listOf(MARKER_VCREDIST, MARKER_GOG_SCRIPT)) {
-            val key = MARKER_PREFIX + marker
-            if (container.getExtra(key, "").isNotEmpty()) {
-                container.putExtra(key, null)
-                changed = true
-            }
+        val gameDir = getGameDir(container) ?: return
+        val gameDirPath = gameDir.absolutePath
+        for (marker in allMarkers) {
+            MarkerUtils.addMarker(gameDirPath, marker)
         }
-        if (changed) container.saveData()
     }
 
-    private fun isDone(container: Container, marker: String): Boolean =
-        container.getExtra(MARKER_PREFIX + marker, "") == "done"
+    private fun resetMarkers(gameDirPath: String) {
+        for (marker in allMarkers) {
+            MarkerUtils.removeMarker(gameDirPath, marker)
+        }
+    }
 
     private fun wrapAsGuestExecutable(cmdChain: String, screenInfo: String): String {
         val wrapped = "winhandler.exe cmd /c \"$cmdChain & taskkill /F /IM explorer.exe\""
         return "wine explorer /desktop=shell,$screenInfo $wrapped"
     }
 
-    private fun buildVcRedistCommand(container: Container): String? {
-        val gameDir = getGameDir(container) ?: return null
+    private fun buildVcRedistCommand(gameDir: File): String? {
         val parts = mutableListOf<String>()
         for ((winPath, args) in vcRedistMap) {
             if (winPath.length < 4 || winPath[1] != ':' || winPath[2] != '\\') continue
