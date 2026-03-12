@@ -54,8 +54,19 @@ object SteamUtils {
         )
         .build()
 
+    private val fallbackDns = object : Dns {
+        override fun lookup(hostname: String): List<InetAddress> {
+            return try {
+                doh.lookup(hostname)
+            } catch (e: Exception) {
+                Timber.w(e, "DoH lookup failed for $hostname, falling back to system DNS")
+                Dns.SYSTEM.lookup(hostname)
+            }
+        }
+    }
+
     internal val http = OkHttpClient.Builder()
-        .dns(doh)
+        .dns(fallbackDns)
         .readTimeout(5, TimeUnit.MINUTES)
         .protocols(listOf(Protocol.HTTP_1_1))
         .retryOnConnectionFailure(true)
