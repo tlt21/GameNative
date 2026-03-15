@@ -339,7 +339,7 @@ private fun getIconForOption(type: AppOptionMenuType): ImageVector {
         AppOptionMenuType.ImportConfig -> Icons.Default.ArrowDownward
         AppOptionMenuType.ExportConfig -> Icons.Default.ArrowUpward
         AppOptionMenuType.ManageGameContent -> Icons.Default.Apps
-        AppOptionMenuType.ChangeBranch -> Icons.Default.Settings
+        AppOptionMenuType.ChangeBranch -> Icons.Default.Share
     }
 }
 
