@@ -63,6 +63,7 @@ import app.gamenative.events.AndroidEvent
 import app.gamenative.service.SteamService
 import app.gamenative.service.amazon.AmazonService
 import com.posthog.PostHog
+import app.gamenative.ui.component.AchievementOverlay
 import app.gamenative.ui.component.ConnectionStatusBanner
 import app.gamenative.service.epic.EpicService
 import app.gamenative.service.gog.GOGService
@@ -487,7 +488,7 @@ fun PluviaMain(
             if (shouldAttemptReconnect) {
                 Timber.d("[PluviaMain]: Steam not connected - attempting reconnection")
                 isConnecting = true
-                viewModel.startConnecting() // Update ViewModel state for UI
+                viewModel.startConnecting()
                 context.startForegroundService(Intent(context, SteamService::class.java))
             }
 
@@ -1063,7 +1064,9 @@ fun PluviaMain(
             val startDestination = rememberSaveable {
                 when {
                     SteamService.isLoggedIn -> PluviaScreen.Home.route + "?offline=false"
-                    GOGService.hasStoredCredentials(context) ||
+                    // skip login screen if any service has stored credentials
+                    (PrefManager.username.isNotEmpty() && PrefManager.refreshToken.isNotEmpty()) ||
+                        GOGService.hasStoredCredentials(context) ||
                         EpicService.hasStoredCredentials(context) ||
                         AmazonService.hasStoredCredentials(context) ->
                         PluviaScreen.Home.route + "?offline=true"
@@ -1109,7 +1112,7 @@ fun PluviaMain(
                         val hasSteamCredentials = PrefManager.refreshToken.isNotEmpty() && PrefManager.username.isNotEmpty()
                         val shouldShowDialogs = !isOffline || !hasSteamCredentials
 
-                        if (shouldShowDialogs && !state.annoyingDialogShown && PluviaApp.xEnvironment == null && !SteamService.keepAlive) {
+                        if (shouldShowDialogs && !state.annoyingDialogShown && PluviaApp.xEnvironment == null && !SteamService.keepAlive && !MainActivity.wasLaunchedViaExternalIntent) {
                             val currentUpdateInfo = updateInfo
                             if (currentUpdateInfo != null) {
                                 viewModel.setAnnoyingDialogShown(true)
@@ -1258,8 +1261,8 @@ fun PluviaMain(
                         onWindowMapped = { context, window ->
                             viewModel.onWindowMapped(context, window, state.launchedAppId)
                         },
-                        onExit = {
-                            viewModel.exitSteamApp(context, state.launchedAppId)
+                        onExit = { onComplete ->
+                            viewModel.exitSteamApp(context, state.launchedAppId, onComplete)
                         },
                         onGameLaunchError = { error ->
                             viewModel.onGameLaunchError(error)
@@ -1304,6 +1307,8 @@ fun PluviaMain(
                     }
                 }
             }
+
+            AchievementOverlay()
         }
     }
 }
@@ -1400,65 +1405,109 @@ fun preLaunchApp(
         // Skip the check if booting to container (Open Container menu option)
         val isCustomGame = gameSource == GameSource.CUSTOM_GAME
 
-        // set up Ubuntu file system
+        // set up Ubuntu file system — download required files and install
         SplitCompat.install(context)
-        if (!SteamService.isImageFsInstallable(context, container.containerVariant)) {
-            setLoadingMessage("Downloading first-time files")
-            SteamService.downloadImageFs(
-                onDownloadProgress = { setLoadingProgress(it / 1.0f) },
-                this,
-                variant = container.containerVariant,
-                context = context,
-            ).await()
-        }
-        if (container.containerVariant.equals(Container.GLIBC) &&
-            !SteamService.isFileInstallable(context, "imagefs_patches_gamenative.tzst")
-        ) {
-            setLoadingMessage("Downloading Wine")
-            SteamService.downloadImageFsPatches(
-                onDownloadProgress = { setLoadingProgress(it / 1.0f) },
-                this,
-                context = context,
-            ).await()
-        } else {
-            if (container.wineVersion.contains("proton-9.0-arm64ec") &&
-                !SteamService.isFileInstallable(context, "proton-9.0-arm64ec.txz")
-            ) {
-                setLoadingMessage("Downloading arm64ec Proton")
-                SteamService.downloadFile(
+        try {
+            if (!SteamService.isImageFsInstallable(context, container.containerVariant)) {
+                setLoadingMessage("Downloading first-time files")
+                SteamService.downloadImageFs(
                     onDownloadProgress = { setLoadingProgress(it / 1.0f) },
                     this,
+                    variant = container.containerVariant,
                     context = context,
-                    "proton-9.0-arm64ec.txz",
-                ).await()
-            } else if (container.wineVersion.contains("proton-9.0-x86_64") &&
-                !SteamService.isFileInstallable(context, "proton-9.0-x86_64.txz")
-            ) {
-                setLoadingMessage("Downloading x86_64 Proton")
-                SteamService.downloadFile(
-                    onDownloadProgress = { setLoadingProgress(it / 1.0f) },
-                    this,
-                    context = context,
-                    "proton-9.0-x86_64.txz",
                 ).await()
             }
-            if (container.wineVersion.contains("proton-9.0-x86_64") || container.wineVersion.contains("proton-9.0-arm64ec")) {
-                val protonVersion = container.wineVersion
-                val imageFs = ImageFs.find(context)
-                val outFile = File(imageFs.rootDir, "/opt/$protonVersion")
-                val binDir = File(outFile, "bin")
-                if (!binDir.exists() || !binDir.isDirectory) {
-                    Timber.i("Extracting $protonVersion to /opt/")
-                    setLoadingMessage("Extracting $protonVersion")
-                    setLoadingProgress(-1f)
-                    val downloaded = File(imageFs.getFilesDir(), "$protonVersion.txz")
-                    TarCompressorUtils.extract(
-                        TarCompressorUtils.Type.XZ,
-                        downloaded,
-                        outFile,
-                    )
+            if (container.containerVariant.equals(Container.GLIBC) &&
+                !SteamService.isFileInstallable(context, "imagefs_patches_gamenative.tzst")
+            ) {
+                setLoadingMessage("Downloading Wine")
+                SteamService.downloadImageFsPatches(
+                    onDownloadProgress = { setLoadingProgress(it / 1.0f) },
+                    this,
+                    context = context,
+                ).await()
+            } else {
+                if (container.wineVersion.contains("proton-9.0-arm64ec") &&
+                    !SteamService.isFileInstallable(context, "proton-9.0-arm64ec.txz")
+                ) {
+                    setLoadingMessage("Downloading arm64ec Proton")
+                    SteamService.downloadFile(
+                        onDownloadProgress = { setLoadingProgress(it / 1.0f) },
+                        this,
+                        context = context,
+                        "proton-9.0-arm64ec.txz",
+                    ).await()
+                } else if (container.wineVersion.contains("proton-9.0-x86_64") &&
+                    !SteamService.isFileInstallable(context, "proton-9.0-x86_64.txz")
+                ) {
+                    setLoadingMessage("Downloading x86_64 Proton")
+                    SteamService.downloadFile(
+                        onDownloadProgress = { setLoadingProgress(it / 1.0f) },
+                        this,
+                        context = context,
+                        "proton-9.0-x86_64.txz",
+                    ).await()
+                }
+                if (container.wineVersion.contains("proton-9.0-x86_64") || container.wineVersion.contains("proton-9.0-arm64ec")) {
+                    val protonVersion = container.wineVersion
+                    val imageFs = ImageFs.find(context)
+                    val outFile = File(imageFs.rootDir, "/opt/$protonVersion")
+                    val binDir = File(outFile, "bin")
+                    if (!binDir.exists() || !binDir.isDirectory) {
+                        Timber.i("Extracting $protonVersion to /opt/")
+                        setLoadingMessage("Extracting $protonVersion")
+                        setLoadingProgress(-1f)
+                        val downloaded = File(imageFs.getFilesDir(), "$protonVersion.txz")
+                        TarCompressorUtils.extract(
+                            TarCompressorUtils.Type.XZ,
+                            downloaded,
+                            outFile,
+                        )
+                    }
                 }
             }
+
+            if (!container.isUseLegacyDRM && !container.isLaunchRealSteam &&
+                !SteamService.isFileInstallable(context, "experimental-drm-20260116.tzst")
+            ) {
+                setLoadingMessage("Downloading extras")
+                SteamService.downloadFile(
+                    onDownloadProgress = { setLoadingProgress(it / 1.0f) },
+                    this,
+                    context = context,
+                    "experimental-drm-20260116.tzst",
+                ).await()
+            }
+            if (container.isLaunchRealSteam && !SteamService.isFileInstallable(context, "steam.tzst")) {
+                setLoadingMessage(context.getString(R.string.main_downloading_steam))
+                SteamService.downloadSteam(
+                    onDownloadProgress = { setLoadingProgress(it / 1.0f) },
+                    this,
+                    context = context,
+                ).await()
+            }
+            if (container.isLaunchRealSteam && !SteamService.isFileInstallable(context, "steam-token.tzst")) {
+                setLoadingMessage("Downloading steam-token")
+                SteamService.downloadFile(
+                    onDownloadProgress = { setLoadingProgress(it / 1.0f) },
+                    this,
+                    context = context,
+                    "steam-token.tzst",
+                ).await()
+            }
+        } catch (e: Exception) {
+            Timber.tag("preLaunchApp").e(e, "File download failed")
+            setLoadingDialogVisible(false)
+            setMessageDialogState(
+                MessageDialogState(
+                    visible = true,
+                    type = DialogType.SYNC_FAIL,
+                    title = context.getString(R.string.download_failed_title),
+                    message = e.message ?: context.getString(R.string.download_failed_message),
+                    dismissBtnText = context.getString(R.string.ok),
+                ),
+            )
+            return@launch
         }
 
         if (!isOffline) {
@@ -1489,35 +1538,6 @@ fun preLaunchApp(
             Timber.tag("preLaunchApp").e("Offline mode, skipping launch dependencies")
         }
 
-        if (!container.isUseLegacyDRM && !container.isLaunchRealSteam &&
-            !SteamService.isFileInstallable(context, "experimental-drm-20260116.tzst")
-        ) {
-            setLoadingMessage("Downloading extras")
-            SteamService.downloadFile(
-                onDownloadProgress = { setLoadingProgress(it / 1.0f) },
-                this,
-                context = context,
-                "experimental-drm-20260116.tzst",
-            ).await()
-        }
-        if (container.isLaunchRealSteam && !SteamService.isFileInstallable(context, "steam.tzst")) {
-            setLoadingMessage(context.getString(R.string.main_downloading_steam))
-            SteamService.downloadSteam(
-                onDownloadProgress = { setLoadingProgress(it / 1.0f) },
-                this,
-                context = context,
-            ).await()
-        }
-        if (container.isLaunchRealSteam && !SteamService.isFileInstallable(context, "steam-token.tzst")) {
-            setLoadingMessage("Downloading steam-token")
-            SteamService.downloadFile(
-                onDownloadProgress = { setLoadingProgress(it / 1.0f) },
-                this,
-                context = context,
-                "steam-token.tzst",
-            ).await()
-        }
-
         val loadingMessage = if (container.containerVariant.equals(Container.GLIBC)) {
             context.getString(R.string.main_installing_glibc)
         } else {
@@ -1526,9 +1546,24 @@ fun preLaunchApp(
         setLoadingMessage(loadingMessage)
         val imageFsInstallSuccess =
             ImageFsInstaller.installIfNeededFuture(context, context.assets, container) { progress ->
-                // Log.d("XServerScreen", "$progress")
                 setLoadingProgress(progress / 100f)
             }.get()
+
+        if (!imageFsInstallSuccess) {
+            Timber.tag("preLaunchApp").e("ImageFS installation failed")
+            setLoadingDialogVisible(false)
+            setMessageDialogState(
+                MessageDialogState(
+                    visible = true,
+                    type = DialogType.SYNC_FAIL,
+                    title = context.getString(R.string.install_failed_title),
+                    message = context.getString(R.string.install_failed_message),
+                    dismissBtnText = context.getString(R.string.ok),
+                ),
+            )
+            return@launch
+        }
+
         setLoadingMessage(context.getString(R.string.main_loading))
         setLoadingProgress(-1f)
 
