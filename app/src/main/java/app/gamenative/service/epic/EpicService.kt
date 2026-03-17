@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.inject.Inject
 import kotlinx.coroutines.*
+import app.gamenative.ui.util.SnackbarManager
 import timber.log.Timber
 
 /**
@@ -209,8 +210,12 @@ class EpicService : Service() {
                 instance.epicManager.uninstall(appId)
 
                 // Delete container
+                // Use game.id (the auto-generated numeric Room DB primary key) to match the container
+                // ID format used at creation time: "EPIC_${libraryItem.gameId}" = "EPIC_${game.id}".
+                // Previously used game.appName (the Legendary identifier, e.g. a UUID) which never
+                // matched the stored container ID, causing orphaned containers.
                 withContext(Dispatchers.Main) {
-                    ContainerUtils.deleteContainer(context, "EPIC_${game.appName}")
+                    ContainerUtils.deleteContainer(context, "EPIC_${game.id}")
                 }
 
                 // Trigger library refresh event
@@ -346,7 +351,7 @@ class EpicService : Service() {
                 ?: EpicManager.ManifestSizes(installSize = 0L, downloadSize = 0L)
         }
 
-        fun downloadGame(context: Context, appId: Int, dlcGameIds: List<Int>, installPath: String): Result<DownloadInfo> {
+        fun downloadGame(context: Context, appId: Int, dlcGameIds: List<Int>, installPath: String, containerLanguage: String): Result<DownloadInfo> {
             val instance = getInstance() ?: return Result.failure(Exception("Service not available"))
 
             val game = runBlocking { instance.epicManager.getGameById(appId) }
@@ -380,7 +385,7 @@ class EpicService : Service() {
                         game,
                         installPath,
                         downloadInfo,
-                        "en-US",
+                        containerLanguage,
                         dlcGameIds,
                         commonRedistDir,
                     )
@@ -392,42 +397,21 @@ class EpicService : Service() {
                         downloadInfo.setProgress(1.0f)
                         downloadInfo.setActive(false)
 
-                        // Show success toast
-                        withContext(Dispatchers.Main) {
-                            android.widget.Toast.makeText(
-                                context,
-                                "Download completed successfully!",
-                                android.widget.Toast.LENGTH_SHORT,
-                            ).show()
-                        }
+                        SnackbarManager.show("Download completed successfully!")
                     } else {
                         val error = result.exceptionOrNull()
                         Timber.e(error, "[Download] Failed for game $gameId")
                         downloadInfo.setProgress(-1.0f)
                         downloadInfo.setActive(false)
 
-                        // Show failure toast
-                        withContext(Dispatchers.Main) {
-                            android.widget.Toast.makeText(
-                                context,
-                                "Download failed: ${error?.message ?: "Unknown error"}",
-                                android.widget.Toast.LENGTH_LONG,
-                            ).show()
-                        }
+                        SnackbarManager.show("Download failed: ${error?.message ?: "Unknown error"}")
                     }
                 } catch (e: Exception) {
                     Timber.e(e, "[Download] Exception for game $gameId")
                     downloadInfo.setProgress(-1.0f)
                     downloadInfo.setActive(false)
 
-                    // Show error toast
-                    withContext(Dispatchers.Main) {
-                        android.widget.Toast.makeText(
-                            context,
-                            "Download error: ${e.message ?: "Unknown error"}",
-                            android.widget.Toast.LENGTH_LONG,
-                        ).show()
-                    }
+                    SnackbarManager.show("Download error: ${e.message ?: "Unknown error"}")
                 } finally {
                     instance.activeDownloads.remove(appId)
                     Timber.d("[Download] Finished for game $gameId, progress: ${downloadInfo.getProgress()}, active: ${downloadInfo.isActive()}")

@@ -196,6 +196,7 @@
     <string name="exit_game">Esci</string>
     <string name="exit">Esci dal Gioco</string>
     <string name="keyboard">Tastiera</string>
+    <string name="resume_game">Riprendi il gioco</string>
     <string name="extra">Extra</string>
     <string name="clear_search">Cancella Ricerca</string>
     <string name="buttons">Pulsanti</string>
@@ -218,6 +219,9 @@
     <string name="open_navigation_menu">Apri Menu Navigazione</string>
     <string name="quick_menu_title">Menu rapido</string>
     <string name="quick_menu_back">Indietro</string>
+    <string name="quick_menu_tab_general">Generale</string>
+    <string name="quick_menu_tab_controller">Controller</string>
+    <string name="performance_hud">HUD prestazioni</string>
     <string name="touchpad_help">Aiuto Touchpad</string>
     <string name="hide_controls_with_controller">Nascondi controlli a schermo con controller</string>
     <string name="hide_controls_with_controller_description">Nascondi automaticamente i controlli a schermo quando è connesso un controller fisico</string>
@@ -534,6 +538,7 @@
     <string name="launch_steam_client_beta">Avvia Client Steam (Beta)</string>
     <string name="steam_offline_mode">Modalità Offline Steam</string>
     <string name="steam_offline_mode_description">Avvia i giochi Steam in modalità offline</string>
+    <string name="achievement_unlocked">Obiettivo sbloccato</string>
     <string name="launch_steam_client_description">Riduce le prestazioni e rallenta l\'avvio\nConsente il gioco online e corregge problemi di DRM e controller\nNon tutti i giochi funzionano</string>
     <string name="allow_steam_updates">Consenti aggiornamenti Steam</string>
     <string name="allow_steam_updates_description">Aggiorna Steam all\'ultima versione. Riduce significativamente le prestazioni.</string>
@@ -678,6 +683,10 @@
     <string name="drive_letter">Lettera dell\'unità</string>
     <string name="no_available_drive_letters">Nessuna lettera di unità disponibile</string>
     <string name="startup_selection">Selezione Avvio</string>
+    <string name="suspend_behavior">Comportamento di sospensione</string>
+    <string name="suspend_behavior_auto">Sospendi e riprendi automaticamente</string>
+    <string name="suspend_behavior_never">Non sospendere mai</string>
+    <string name="suspend_behavior_manual">Sospendi finché non premi il pulsante Riprendi (predefinito)</string>
     <string name="processor_affinity_32bit">Affinità Processore (app 32-bit)</string>
     <string name="executable_path">Percorso Eseguibile</string>
     <string name="executable_path_placeholder">es. percorso\\a\\exe</string>
@@ -967,6 +976,7 @@
     <string name="best_config_applied_successfully">Config applicata con successo</string>
     <string name="best_config_known_config_invalid">Config nota non valida</string>
     <string name="best_config_no_config_available">Nessuna miglior config disponibile per questo gioco</string>
+    <string name="best_config_fetch_failed">Impossibile recuperare la configurazione. Controlla la connessione di rete.</string>
     <string name="best_config_apply_failed">Impossibile applicare config: %s</string>
     <string name="best_config_missing_content">%s mancante</string>
     <string name="import_config">Importa configurazione</string>
@@ -1206,4 +1216,8 @@
     <string name="manifest_content_untrusted">Content is not trusted and was not installed.</string>
     <string name="manifest_type_mismatch">Downloaded content does not match expected type.</string>
     <string name="manifest_glibc_not_supported">GLIBC builds are not supported.</string>
+    <string name="download_failed_title">Download non riuscito</string>
+    <string name="download_failed_message">Non è stato possibile scaricare un file necessario. Controlla la connessione di rete e riprova.</string>
+    <string name="install_failed_title">Installazione non riuscita</string>
+    <string name="install_failed_message">Non è stato possibile installare i file di sistema. Riprova. Se il problema persiste, prova una rete diversa o usa una VPN.</string>
 </resources>

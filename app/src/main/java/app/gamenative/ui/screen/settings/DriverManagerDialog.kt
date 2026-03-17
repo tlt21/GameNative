@@ -54,13 +54,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.Surface
 import app.gamenative.ui.theme.PluviaTheme
 import android.content.res.Configuration
-import android.widget.Toast
+import app.gamenative.ui.util.SnackbarManager
 import app.gamenative.service.SteamService
 import app.gamenative.ui.component.dialog.LoadingDialog
+import app.gamenative.utils.Net
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
 import java.io.InputStream
@@ -73,15 +73,6 @@ import okhttp3.Response
 import java.io.FileOutputStream
 import kotlinx.coroutines.delay
 
-object Net {
-    val http: OkHttpClient by lazy { OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(0,  TimeUnit.MILLISECONDS)     // no per-packet timer
-        .pingInterval(30, TimeUnit.SECONDS)         // keep HTTP/2 alive
-        .retryOnConnectionFailure(true)             // default, but explicit
-        .build() }
-
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -182,7 +173,7 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                 val res = withContext(Dispatchers.IO) { handlePickedUri(ctx, it) }
                 lastMessage = res
                 if (res.startsWith("Installed driver:")) refreshDriverList()
-                Toast.makeText(ctx, res, Toast.LENGTH_SHORT).show()
+                SnackbarManager.show(res)
                 SteamService.isImporting = false
                 isImporting = false
             }
@@ -230,7 +221,7 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                 withContext(Dispatchers.Main) {
                     lastMessage = res
                     if (res.startsWith("Installed driver:")) refreshDriverList()
-                    Toast.makeText(ctx, res, Toast.LENGTH_SHORT).show()
+                    SnackbarManager.show(res)
                 }
                 Timber.d("DriverManagerDialog: Install complete in ${installDurationMs}ms")
                 Timber.d("DriverManagerDialog: Download+Install total ${(System.currentTimeMillis() - overallStart)}ms")
@@ -242,7 +233,7 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
             } catch (e: SocketTimeoutException) {
                 val errorMessage = ctx.getString(R.string.driver_timeout)
                 lastMessage = errorMessage
-                Toast.makeText(ctx, errorMessage, Toast.LENGTH_SHORT).show()
+                SnackbarManager.show(errorMessage)
                 Timber.e(e, "DriverManagerDialog: Download timeout")
             } catch (e: IOException) {
                 val errorMessage = if (e.message?.contains("timeout", ignoreCase = true) == true) {
@@ -251,12 +242,12 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                     ctx.getString(R.string.driver_network_error, e.message ?: "")
                 }
                 lastMessage = errorMessage
-                Toast.makeText(ctx, errorMessage, Toast.LENGTH_SHORT).show()
+                SnackbarManager.show(errorMessage)
                 Timber.e(e, "DriverManagerDialog: Download failed with IO error")
             } catch (e: Exception) {
                 val errorMessage = "Error downloading driver: ${e.message}"
                 lastMessage = errorMessage
-                Toast.makeText(ctx, errorMessage, Toast.LENGTH_SHORT).show()
+                SnackbarManager.show(errorMessage)
                 Timber.e(e, "DriverManagerDialog: Download failed")
             } finally {
                 isDownloading = false
@@ -493,11 +484,11 @@ fun DriverManagerDialog(open: Boolean, onDismiss: () -> Unit) {
                                     try {
                                         AdrenotoolsManager(ctx).removeDriver(id)
                                         lastMessage = "Removed driver: $id"
-                                        Toast.makeText(ctx, "Removed driver: $id", Toast.LENGTH_SHORT).show()
+                                        SnackbarManager.show("Removed driver: $id")
                                         refreshDriverList()
                                     } catch (e: Exception) {
                                         lastMessage = "Error removing $id: ${e.message}"
-                                        Toast.makeText(ctx, "Error removing $id: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        SnackbarManager.show("Error removing $id: ${e.message}")
                                     }
                                     driverToDelete = null
                                 }) {
