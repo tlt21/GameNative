@@ -35,6 +35,8 @@ import app.gamenative.ui.util.ContainerConfigTransfer
 import app.gamenative.ui.util.SnackbarManager
 import app.gamenative.utils.BestConfigService
 import app.gamenative.utils.ContainerUtils
+import app.gamenative.utils.GameCompatibilityCache
+import app.gamenative.utils.GameCompatibilityService
 import app.gamenative.utils.GameMetadataManager
 import app.gamenative.utils.SteamGridDB
 import app.gamenative.utils.createPinnedShortcut
@@ -96,6 +98,44 @@ abstract class BaseAppScreen {
         fun shouldImportConfig(appId: String): Boolean {
             return importConfigRequests[appId] == true
         }
+    }
+
+    /**
+     * Compatibility info is fetched and cached by [LibraryViewModel]. App screens should only read from cache
+     * and render the message if available.
+     */
+    @Composable
+    protected fun rememberCompatibilityInfo(
+        context: Context,
+        gameName: String,
+    ): Pair<String?, ULong?> {
+        var compatibilityMessage by remember(gameName) { mutableStateOf<String?>(null) }
+        var compatibilityColor by remember(gameName) { mutableStateOf<ULong?>(null) }
+
+        LaunchedEffect(gameName) {
+            if (gameName.isBlank()) {
+                compatibilityMessage = null
+                compatibilityColor = null
+                return@LaunchedEffect
+            }
+            try {
+                val cachedResponse = GameCompatibilityCache.getCached(gameName)
+                if (cachedResponse != null) {
+                    val message = GameCompatibilityService.getCompatibilityMessageFromResponse(context, cachedResponse)
+                    compatibilityMessage = message.text
+                    compatibilityColor = message.color.value
+                } else {
+                    compatibilityMessage = null
+                    compatibilityColor = null
+                }
+            } catch (e: Exception) {
+                Timber.tag("BaseAppScreen").e(e, "Failed to get compatibility from cache")
+                compatibilityMessage = null
+                compatibilityColor = null
+            }
+        }
+
+        return compatibilityMessage to compatibilityColor
     }
 
     /**
