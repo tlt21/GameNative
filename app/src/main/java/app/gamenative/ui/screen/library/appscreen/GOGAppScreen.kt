@@ -444,9 +444,6 @@ class GOGAppScreen : BaseAppScreen() {
             },
         )
     }
-    override fun getGameFolderPathForImageFetch(context: Context, libraryItem: LibraryItem): String? {
-        return null // GOG Stores full URLs in their database entry.
-    }
 
     override fun observeGameState(
         context: Context,
