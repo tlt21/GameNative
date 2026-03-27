@@ -10,6 +10,7 @@ import app.gamenative.db.dao.AmazonGameDao
 import app.gamenative.db.dao.EpicGameDao
 import app.gamenative.db.dao.GOGGameDao
 import app.gamenative.db.dao.SteamAppDao
+import app.gamenative.enums.OSArch
 import app.gamenative.events.AndroidEvent
 import app.gamenative.service.DownloadService
 import app.gamenative.service.SteamService
@@ -786,13 +787,17 @@ object ContainerStorageManager {
 
     private fun estimateSteamInstallSize(app: SteamApp): Long? {
         val preferredLanguage = PrefManager.containerLanguage
-        val downloadableDepots = runCatching {
-            SteamService.getMainAppDepots(app.id, preferredLanguage)
-        }.getOrElse {
-            emptyMap()
+        val has64Bit = app.depots.values.any { it.osArch == OSArch.Arch64 }
+        val downloadableDepots = app.depots.values.filter { depot ->
+            SteamService.filterForDownloadableDepots(
+                depot = depot,
+                has64Bit = has64Bit,
+                preferredLanguage = preferredLanguage,
+                ownedDlc = emptyMap(),
+            )
         }
 
-        return downloadableDepots.values
+        return downloadableDepots
             .sumOf { depot -> depot.manifests["public"]?.size ?: depot.manifests.values.firstOrNull()?.size ?: 0L }
             .takeIf { it > 0L }
     }
