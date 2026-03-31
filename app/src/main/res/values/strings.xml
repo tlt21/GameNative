@@ -99,6 +99,7 @@
     <string name="not_enough_space">Not Enough Space</string>
     <string name="proceed">Proceed</string>
     <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
     <string name="untitled">Untitled</string>
     <string name="confirm_delete">Confirm Deletion</string>
     <string name="destination_library">Library</string>
@@ -176,7 +177,6 @@
     <string name="edit">Edit</string>
     <string name="remove">Remove</string>
     <string name="add">Add</string>
-    <string name="delete">Delete</string>
     <string name="copy_from">Copy From</string>
     <string name="ok">Ok</string>
     <string name="container_config_custom_resolution_title">Set Custom Resolution</string>
@@ -1149,6 +1149,11 @@
     <string name="library_source_steam">Steam</string>
     <string name="library_source_custom">Custom Games</string>
     <string name="library_source_title">Source</string>
+    <string name="library_source_not_logged_in_steam">Sign in to Steam to see your library</string>
+    <string name="library_source_not_logged_in_gog">Sign in to GOG to see your library</string>
+    <string name="library_source_not_logged_in_epic">Sign in to Epic to see your library</string>
+    <string name="library_source_not_logged_in_amazon">Sign in to Amazon to see your library</string>
+    <string name="library_source_no_custom_games">No custom games added yet</string>
     <string name="library_layout_title">Layout</string>
     <string name="library_options">Options</string>
     <string name="back">Back</string>
@@ -1358,10 +1363,14 @@
     <string name="manifest_type_mismatch">Downloaded content does not match expected type.</string>
     <string name="manifest_glibc_not_supported">GLIBC builds are not supported.</string>
 
-    <!-- Library: source not logged in splash -->
-    <string name="library_source_not_logged_in_steam">Sign in to access your Steam library.</string>
-    <string name="library_source_not_logged_in_gog">Sign in to access your GOG library.</string>
-    <string name="library_source_not_logged_in_epic">Sign in to access your Epic library.</string>
-    <string name="library_source_not_logged_in_amazon">Sign in to access your Amazon library.</string>
-    <string name="library_source_no_custom_games">You have not added any custom games.</string>
+    <!-- Workshop -->
+    <string name="workshop_checking_mods">Checking Workshop mods…</string>
+    <string name="workshop_update_title">Workshop Mod Updates</string>
+    <string name="workshop_update_prompt">%1$s MB of mod updates available. Download now or skip?</string>
+    <string name="workshop_download_btn">Download</string>
+    <string name="workshop_skip_btn">Skip</string>
+    <string name="workshop_downloading">Downloading Workshop Mods (%1$d/%2$d)</string>
+    <string name="workshop_processing">Processing mods…</string>
+    <string name="workshop_failed_count">%1$d workshop mod(s) failed to update</string>
+    <string name="workshop_download_failed">Download failed</string>
 </resources>

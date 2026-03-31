@@ -812,6 +812,15 @@ internal fun AppScreenContent(
                                     .padding(horizontal = 8.dp),
                                 verticalArrangement = Arrangement.Center,
                             ) {
+                                if (!downloadStatusMessage.isNullOrBlank()) {
+                                    Text(
+                                        text = downloadStatusMessage!!,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
                                 if (downloadSizeText.isNotEmpty()) {
                                     Text(
                                         text = downloadSizeText,
