@@ -839,15 +839,6 @@ internal fun AppScreenContent(
                                     .padding(horizontal = 8.dp),
                                 verticalArrangement = Arrangement.Center,
                             ) {
-                                if (!downloadStatusMessage.isNullOrBlank()) {
-                                    Text(
-                                        text = downloadStatusMessage!!,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.White,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                }
                                 if (downloadSizeText.isNotEmpty()) {
                                     Text(
                                         text = downloadSizeText,
@@ -895,35 +886,21 @@ internal fun AppScreenContent(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            if (!downloadStatusMessage.isNullOrBlank()) {
+                            if (downloadSizeText.isNotEmpty()) {
                                 Text(
-                                    text = downloadStatusMessage!!,
+                                    text = downloadSizeText,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color.White,
+                                    color = Color.White.copy(alpha = 0.9f),
                                     maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.weight(1f, fill = false),
                                 )
                             }
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                if (downloadSizeText.isNotEmpty()) {
-                                    Text(
-                                        text = downloadSizeText,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.White.copy(alpha = 0.9f),
-                                        maxLines = 1,
-                                    )
-                                }
-                                if (downloadTimeLeftText.isNotEmpty()) {
-                                    Text(
-                                        text = downloadTimeLeftText,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = Color.White.copy(alpha = 0.65f),
-                                        maxLines = 1,
-                                    )
-                                }
+                            if (downloadTimeLeftText.isNotEmpty()) {
+                                Text(
+                                    text = downloadTimeLeftText,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White.copy(alpha = 0.65f),
+                                    maxLines = 1,
+                                )
                             }
                         }
                     }
