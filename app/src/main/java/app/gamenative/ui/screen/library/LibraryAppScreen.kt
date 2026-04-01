@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -82,6 +83,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -188,6 +190,7 @@ private fun PrimaryActionButton(
 
     Box(
         modifier = modifier
+            .heightIn(min = 52.dp)
             .scale(scale)
             .clip(RoundedCornerShape(8.dp))
             .background(
@@ -280,6 +283,7 @@ private fun PrimaryActionButton(
         }
     }
 }
+
 
 /**
  * Icon-only action button for the overlay action bar
@@ -780,12 +784,17 @@ internal fun AppScreenContent(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Integrated action bar - overlaid on hero
-                    Row(
+                    val isPortrait = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .background(Color.Black.copy(alpha = 0.5f))
-                            .padding(12.dp)
+                            .padding(12.dp),
+                    ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .focusGroup(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -822,9 +831,8 @@ internal fun AppScreenContent(
                             )
                         }
 
-                        // Download size / ETA text lives here so it can reflow
-                        // freely without affecting the fixed-width button
-                        if (isDownloading) {
+                        // Download size / ETA text — inline only in landscape
+                        if (isDownloading && !isPortrait) {
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
@@ -877,6 +885,48 @@ internal fun AppScreenContent(
                                 onClick = onDeleteDownloadClick,
                             )
                         }
+                    }
+
+                    if (isDownloading && isPortrait) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            if (!downloadStatusMessage.isNullOrBlank()) {
+                                Text(
+                                    text = downloadStatusMessage!!,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.White,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f, fill = false),
+                                )
+                            }
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                if (downloadSizeText.isNotEmpty()) {
+                                    Text(
+                                        text = downloadSizeText,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White.copy(alpha = 0.9f),
+                                        maxLines = 1,
+                                    )
+                                }
+                                if (downloadTimeLeftText.isNotEmpty()) {
+                                    Text(
+                                        text = downloadTimeLeftText,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White.copy(alpha = 0.65f),
+                                        maxLines = 1,
+                                    )
+                                }
+                            }
+                        }
+                    }
                     }
 
                     // Compatibility status (if applicable)
