@@ -888,9 +888,10 @@ class GOGDownloadManager @Inject constructor(
                     val refreshResult = refreshSecureLinks(secureLinkContext, chunkHashes)
                     if (refreshResult.isSuccess) {
                         currentChunkUrlCandidates = refreshResult.getOrThrow()
-                        Timber.tag("GOG").i("Secure links refreshed, retrying batch")
+                        val failedChunkIds = expiredLinkFailures.map { (_, chunkMd5) -> chunkMd5 }
+                        Timber.tag("GOG").i("Secure links refreshed, retrying ${failedChunkIds.size} failed chunk(s)")
 
-                        val retryResults = chunkBatch.map { chunkMd5 ->
+                        val retryResults = failedChunkIds.map { chunkMd5 ->
                             async {
                                 val urls = currentChunkUrlCandidates[chunkMd5] ?: return@async Result.failure<File>(
                                     Exception("No URL candidates found for chunk $chunkMd5 after refresh"),
@@ -907,7 +908,7 @@ class GOGDownloadManager @Inject constructor(
 
                         // After a successful refresh+retry pass, ensure all chunks in this batch
                         // are reflected in assembly/progress state.
-                        chunkBatch.forEach { downloadedChunkIds.add(it) }
+                        failedChunkIds.forEach { downloadedChunkIds.add(it) }
                         assembleReady().onFailure { return@withContext Result.failure(it) }
 
                         val progress = downloadedChunkIds.size.toFloat() / totalChunks
@@ -1257,7 +1258,6 @@ class GOGDownloadManager @Inject constructor(
             .sortedWith(compareByDescending<Triple<String, Boolean, Long>> { it.second }.thenBy { it.third })
             .map { it.first }
 
-        Timber.tag("GOG").d("CDN ranking for $label: ${ranked.joinToString()}")
         ranked
     }
 
