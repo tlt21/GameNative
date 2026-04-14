@@ -760,6 +760,8 @@ class GOGDownloadManager @Inject constructor(
         return "$normalizedPathBase/main.bin$querySuffix"
     }
 
+
+
     // assembles files as chunks arrive, deletes chunks once their last consumer is assembled
     private suspend fun downloadAndAssembleChunks(
         chunkUrlCandidates: Map<String, List<String>>,
