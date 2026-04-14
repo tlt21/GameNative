@@ -2,6 +2,7 @@ package app.gamenative.service.epic
 
 import android.content.Context
 import android.util.Log
+import app.gamenative.PrefManager
 import app.gamenative.data.DownloadInfo
 import app.gamenative.enums.Marker
 import app.gamenative.utils.MarkerUtils
@@ -50,7 +51,6 @@ class EpicDownloadManager @Inject constructor(
         .build()
 
     companion object {
-        private const val MAX_PARALLEL_DOWNLOADS = 6
         private const val CHUNK_BUFFER_SIZE = 1024 * 1024 // 1MB buffer for decompression
         private const val MAX_CHUNK_RETRIES = 3 // Maximum retries per chunk
         private const val RETRY_DELAY_MS = 1000L // Initial retry delay in milliseconds
@@ -890,12 +890,13 @@ class EpicDownloadManager @Inject constructor(
     ): Result<Unit> = withContext(Dispatchers.IO) {
         val totalChunks = chunkQueue.size
         val totalFiles = files.size
+        val parallelDownloads = PrefManager.downloadSpeed.coerceAtLeast(1)
         val downloadedChunkIds = mutableSetOf<String>()
         var nextFileToAssemble = 0
 
         downloadInfo.setProgress(0.0f)
 
-        for (chunkBatch in chunkQueue.chunked(MAX_PARALLEL_DOWNLOADS)) {
+        for (chunkBatch in chunkQueue.chunked(parallelDownloads)) {
             if (!downloadInfo.isActive()) {
                 return@withContext Result.failure(Exception("Download cancelled"))
             }
