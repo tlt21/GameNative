@@ -11,6 +11,23 @@ import kotlinx.coroutines.withContext
 import java.util.Locale
 
 object ManifestComponentHelper {
+    private fun parseSemVerTriplet(value: String): Triple<Int, Int, Int>? {
+        val match = Regex("(\\d+)\\.(\\d+)(?:\\.(\\d+))?").find(value) ?: return null
+        val major = match.groupValues.getOrNull(1)?.toIntOrNull() ?: return null
+        val minor = match.groupValues.getOrNull(2)?.toIntOrNull() ?: return null
+        val patch = match.groupValues.getOrNull(3)?.toIntOrNull() ?: 0
+        return Triple(major, minor, patch)
+    }
+
+    private fun isAtLeastVersion(value: String, minMajor: Int, minMinor: Int, minPatch: Int): Boolean {
+        val (major, minor, patch) = parseSemVerTriplet(value) ?: return false
+        return when {
+            major != minMajor -> major > minMajor
+            minor != minMinor -> minor > minMinor
+            else -> patch >= minPatch
+        }
+    }
+
     data class InstalledContentLists(
         val dxvk: List<String>,
         val vkd3d: List<String>,
@@ -180,6 +197,9 @@ object ManifestComponentHelper {
         val isVortekLike = containerVariant.equals("glibc", ignoreCase = true) &&
             driverType in listOf("vortek", "adreno", "sd-8-elite")
 
+        val isVKD3D = StringUtils.parseIdentifier(
+            dxWrappers.getOrNull(dxWrapperIndex).orEmpty(),
+        ) == "vkd3d"
         val constrainedLabels = listOf("1.10.3", "1.10.9-sarek", "1.9.2", "async-1.10.3")
         val constrainedIds = constrainedLabels.map { StringUtils.parseIdentifier(it) }
         val useConstrained =
@@ -199,8 +219,25 @@ object ManifestComponentHelper {
             else if (isBionicVariant) dxvkOptions.muted
             else emptyList()
 
+        val (finalLabels, finalIds, finalMuted) = if (isVKD3D) {
+            val allowedIndices = ids.mapIndexedNotNull { index, id ->
+                if (isAtLeastVersion(id, 2, 6, 1)) index else null
+            }
+            if (allowedIndices.isNotEmpty()) {
+                Triple(
+                    allowedIndices.map { labels[it] },
+                    allowedIndices.map { ids[it] },
+                    if (muted.isNotEmpty()) allowedIndices.map { muted[it] } else emptyList(),
+                )
+            } else {
+                Triple(labels, ids, muted)
+            }
+        } else {
+            Triple(labels, ids, muted)
+        }
+
         // Always return DXVK options regardless of wrapper selection (allows DXVK config even when VKD3D is selected)
-        return DxvkContext(isVortekLike, labels, ids, muted)
+        return DxvkContext(isVortekLike, finalLabels, finalIds, finalMuted)
     }
 
     fun versionExists(version: String, available: List<String>): Boolean {
