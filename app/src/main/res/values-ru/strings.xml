@@ -21,6 +21,7 @@
     <string name="abc_toolbar_collapse_description">Свернуть</string>
     <string name="about">О программе</string>
     <string name="acknowledge">ОК</string>
+    <string name="steam_cloud_sync_downloading_save_files">Загрузка файлов сохранения %1$d/%2$d</string>
     <string name="action_add_game">Добавить игру</string>
     <string name="action_details">Подробности</string>
     <string name="action_refresh">Обновить</string>
@@ -104,11 +105,14 @@
     <string name="bcn_emulation">Эмуляция BCn</string>
     <string name="bcn_emulation_type">Тип эмуляции BCn</string>
     <string name="best_config_applied_successfully">Конфигурация успешно применена</string>
+    <string name="best_config_applied_with_defaults">Конфигурация применена, отсутствующие компоненты заменены значениями по умолчанию</string>
+    <string name="best_config_apply_anyway">Применить всё равно</string>
     <string name="best_config_apply_failed">Ошибка применения конфигурации: %s</string>
     <string name="best_config_exact_gpu_match">Известная конфигурация работает на вашем GPU</string>
     <string name="best_config_fallback_match">Известная конфигурация может работать на вашем GPU</string>
     <string name="best_config_known_config_invalid">Известная конфигурация невалидна</string>
-    <string name="best_config_missing_content">%s отсутствует</string>
+    <string name="best_config_missing_components_message">Следующие необходимые компоненты недоступны на этом устройстве:\n\n%1$s\n\nУстановите недостающие компоненты и повторите попытку.</string>
+    <string name="best_config_missing_components_title">Конфигурация не применена</string>
     <string name="best_config_no_config_available">Нет доступной лучшей конфигурации для этой игры</string>
     <string name="best_config_fetch_failed">Не удалось получить конфигурацию. Проверьте сетевое подключение.</string>
     <string name="bind_button">Привязать: %1$s</string>
@@ -286,6 +290,7 @@
     <string name="denuvo">Denuvo</string>
     <string name="describe_what_happened">Опишите, что произошло</string>
     <string name="destination_downloads">Загрузки и хранилище</string>
+    <string name="downloads_section_title">Загрузки</string>
     <string name="destination_library">Библиотека</string>
     <string name="developer">Разработчик</string>
     <string name="direct3d">Direct3D</string>
@@ -341,10 +346,6 @@
     <string name="end_process">Завершить процесс</string>
     <string name="environment_variables">Переменные окружения</string>
     <string name="epic_cancel_download_message">Вы уверены, что хотите отменить загрузку приложения?</string>
-    <string name="epic_cloud_sync_error">Ошибка синхронизации облачного сохранения: %1$s</string>
-    <string name="epic_cloud_sync_failed">Ошибка синхронизации облачного сохранения</string>
-    <string name="epic_cloud_sync_starting">Начало синхронизации облачного сохранения…</string>
-    <string name="epic_cloud_sync_success">Облачные сохранения успешно синхронизированы</string>
     <string name="epic_delete_download_message">Удалить все загруженные данные для этой игры?</string>
     <string name="epic_download_error">Ошибка загрузки: %1$s</string>
     <string name="epic_download_failed">Ошибка при запуске загрузки: %1$s</string>
@@ -433,6 +434,7 @@
     <string name="intent_launch_service_pending">Игра запустится после запуска сервиса</string>
     <string name="intent_launch_steam_login_failed">Ошибка входа в Steam — запуск игры отменён</string>
     <string name="intent_launch_service_timeout">Не удалось запустить игровой сервис — запуск игры отменён</string>
+    <string name="back_press_exit_warning">Нажмите назад ещё раз для выхода</string>
     <string name="game_not_installed_title">Игра не установлена</string>
     <string name="game_options_cloud_saves">Облачные сохранения</string>
     <string name="game_options_container">Контейнер</string>
@@ -539,9 +541,11 @@ Ubuntu RootFs - releases.ubuntu.com/focal</string>
     <string name="library_app_status">Статус приложения</string>
     <string name="library_app_type">Тип приложения</string>
     <string name="library_cancel_download_message">Вы уверены, что хотите отменить загрузку приложения?</string>
-    <string name="library_cloud_sync_failed">Ошибка синхронизации облака: %s</string>
+    <string name="library_cloud_sync_starting">Начало синхронизации облака…</string>
     <string name="library_cloud_sync_success">Синхронизация облака завершена успешно</string>
     <string name="library_cloud_sync_up_to_date">Файлы сохранения уже актуальны</string>
+    <string name="library_cloud_sync_failed">Ошибка синхронизации облака</string>
+    <string name="library_cloud_sync_error">Ошибка синхронизации облачного сохранения: %1$s</string>
     <string name="library_compatibility_unknown">Неизвестно</string>
     <string name="library_compatible">Совместимо</string>
     <string name="library_config_title">Конфигурация %s</string>
@@ -831,6 +835,8 @@ https://gamenative.app
     <string name="screen_effects_toon_description">Добавляет тёмные контуры для эффекта cel-shading.</string>
     <string name="screen_effects_fxaa">FXAA</string>
     <string name="screen_effects_fxaa_description">Сглаживает зубчатые края лёгким постобрабатывающим антиалиасингом.</string>
+    <string name="screen_effects_vivid">Насыщенный</string>
+    <string name="screen_effects_vivid_description">Добавляет bloom и усиливает контраст для более выразительного изображения.</string>
     <string name="screen_effects_crt">CRT</string>
     <string name="screen_effects_crt_description">Добавляет строки развёртки и лёгкую хроматическую аберрацию.</string>
     <string name="screen_effects_ntsc">NTSC</string>
@@ -974,6 +980,8 @@ https://gamenative.app
     <string name="settings_info_libraries_title">Используемые библиотеки</string>
     <string name="settings_info_privacy_subtitle">Открывает ссылку на политику конфиденциальности GameNative</string>
     <string name="settings_info_privacy_title">Политика конфиденциальности</string>
+    <string name="settings_info_usage_analytics_title">Аналитика использования</string>
+    <string name="settings_info_usage_analytics_subtitle">Мы никогда не отслеживаем личную информацию. Отключение останавливает несущественную аналитику, однако основные данные о производительности игр по-прежнему собираются как законный интерес для улучшения совместимости.</string>
     <string name="settings_info_send_tip_subtitle">Внесите вклад в продолжающуюся разработку</string>
     <string name="settings_info_send_tip_title">Отправить чаевые</string>
     <string name="settings_info_source_subtitle">Просмотреть исходный код этого проекта</string>
@@ -986,6 +994,10 @@ https://gamenative.app
     <string name="settings_interface_external_storage_title">Запись на внешнее хранилище</string>
     <string name="settings_interface_hide_statusbar_subtitle">Скрыть строку состояния Android в списке игр, настройках и т.д. Приложение перезагрузится при изменении.</string>
     <string name="settings_interface_hide_statusbar_title">Скрыть строку состояния, когда не в игре</string>
+    <string name="settings_interface_warn_before_exit_title">Предупреждать перед выходом</string>
+    <string name="settings_interface_warn_before_exit_subtitle">Для выхода требуется двойное нажатие назад — первое показывает предупреждение</string>
+    <string name="settings_interface_show_gamepad_hints_title">Показывать подсказки геймпада</string>
+    <string name="settings_interface_show_gamepad_hints_subtitle">Показывает панель подсказок кнопок геймпада в нижней части экрана</string>
     <string name="settings_interface_icon_style">Стиль значка</string>
     <string name="settings_interface_no_external_storage">Внешнее хранилище не обнаружено</string>
     <string name="settings_interface_restart_required_title">Требуется перезагрузка</string>
@@ -1001,6 +1013,7 @@ https://gamenative.app
     <string name="settings_region_default">По умолчанию</string>
     <string name="settings_save_logcat_subtitle">Сохраняет снимок logcat только для PID этого приложения</string>
     <string name="settings_save_logcat_title">Сохранить logcat</string>
+    <string name="settings_achievement_show_notification">Показывать уведомления о достижениях</string>
     <string name="settings_saving_restarting">Сохранение настроек и перезагрузка…</string>
     <string name="settings_select_language">Выберите язык</string>
     <string name="settings_subtitle">Настройте ваш опыт</string>
@@ -1050,9 +1063,6 @@ https://gamenative.app
     <string name="steam_2fa_email">Пожалуйста, введите код аутентификации, отправленный на %s</string>
     <string name="steam_2fa_incorrect">Предыдущий код был неправильным, пожалуйста, попробуйте снова.</string>
     <string name="steam_cancel_download_message">Вы уверены, что хотите отменить загрузку приложения?</string>
-    <string name="steam_cloud_sync_failed">Ошибка синхронизации облака: %s</string>
-    <string name="steam_cloud_sync_success">Синхронизация облака завершена успешно</string>
-    <string name="steam_cloud_sync_up_to_date">Файлы сохранения уже актуальны</string>
     <string name="steam_container_reset_success">Контейнер сброшен на значения по умолчанию</string>
     <string name="steam_continue">Продолжить</string>
     <string name="steam_delete_download_message">Удалить все загруженные данные для этой игры?</string>
@@ -1165,6 +1175,7 @@ https://gamenative.app
     <string name="tab_local">Пользовательское</string>
     <string name="tab_steam">Steam</string>
     <string name="task_manager">Менеджер задач</string>
+    <string name="tools_wine_processes_running_hint">%1$d запущено, нажмите/кликните по процессу, чтобы закрыть его</string>
     <string name="template_percent">%1$d процент.</string>
     <string name="thumbstick_buttons">Кнопки джойстика</string>
     <string name="thumbstick_buttons_category">Кнопки джойстика</string>
@@ -1294,4 +1305,26 @@ https://gamenative.app
     <string name="workshop_processing">Обработка модов…</string>
     <string name="workshop_failed_count">Не удалось обновить %1$d мод(ов) Мастерской</string>
     <string name="workshop_download_failed">Ошибка загрузки</string>
+
+    <!-- Recommendations -->
+    <string name="recommended_badge">Рекомендуемое</string>
+    <string name="recommended_buy_button">Посмотреть игру</string>
+    <string name="recommended_support_message">Покупка по этой ссылке помогает поддержать разработку GameNative.</string>
+    <string name="recommended_about_heading">Об этой игре</string>
+    <string name="recommended_review_count">На основе %1$s отзывов</string>
+    <string name="review_overwhelmingly_positive">Крайне положительные</string>
+    <string name="review_very_positive">Очень положительные</string>
+    <string name="review_mostly_positive">В основном положительные</string>
+    <string name="review_mixed">Смешанные</string>
+    <string name="review_mostly_negative">В основном отрицательные</string>
+    <string name="review_overwhelmingly_negative">Крайне отрицательные</string>
+    <string name="settings_interface_show_recommendations_title">Показывать рекомендации игр</string>
+    <string name="settings_interface_show_recommendations_subtitle">Показывает подобранные инди-игры в вашей библиотеке. Оставляя это включённым, вы поддерживаете инди-разработчиков и GameNative.</string>
+     <string name="steam_save_export_success">Сохранения экспортированы</string>
+     <string name="steam_save_export_no_saves_found">Сохранения не найдены</string>
+     <string name="steam_save_export_failed">Не удалось экспортировать сохранения: %s</string>
+     <string name="steam_save_import_success">Сохранения импортированы</string>
+     <string name="steam_save_import_failed">Не удалось импортировать сохранения: %s</string>
+    <string name="option_import_saves">Импортировать сохранения</string>
+    <string name="option_export_saves">Экспортировать сохранения</string>
 </resources>

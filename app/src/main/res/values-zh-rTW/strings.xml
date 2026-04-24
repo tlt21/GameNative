@@ -27,11 +27,9 @@
     <string name="base_app_reset_container_confirm">重置</string>
     <string name="steam_verify_files_title">驗證檔案</string>
     <string name="steam_verify_files_message">請確保您的存檔已上傳至雲端或已備份, 然後再進行驗證, 否則存檔可能會被覆蓋</string>
+    <string name="steam_cloud_sync_downloading_save_files">正在下載存檔檔案 %1$d/%2$d</string>
     <string name="steam_update_title">更新</string>
     <string name="steam_update_message">請確保您的存檔已上傳至雲端或已備份, 然後再進行驗證, 否則存檔可能會被覆蓋</string>
-    <string name="steam_cloud_sync_success">雲端同步已成功完成</string>
-    <string name="steam_cloud_sync_up_to_date">遊戲存檔已是最新版本</string>
-    <string name="steam_cloud_sync_failed">雲端同步失敗: %s</string>
     <string name="steam_storage_permission_required">需要存儲權限</string>
     <string name="steam_container_reset_success">容器重設為預設設定</string>
     <string name="steam_imagefs_installed">已安裝 ImageFS, 請嘗試再次編輯容器</string>
@@ -58,10 +56,6 @@
     <string name="steam_never">從不</string>
     <string name="epic_cancel_download_message">確定要取消下載應用程式嗎？</string>
     <string name="epic_delete_download_message">刪除此遊戲的所有已下載資料？</string>
-    <string name="epic_cloud_sync_starting">正在開始雲端存檔同步…</string>
-    <string name="epic_cloud_sync_success">雲端存檔同步成功</string>
-    <string name="epic_cloud_sync_failed">雲端存檔同步失敗</string>
-    <string name="epic_cloud_sync_error">雲端存檔同步錯誤：%1$s</string>
     <string name="epic_uninstall_failed">解除安裝失敗：%1$s</string>
     <string name="epic_uninstall_error">解除安裝錯誤：%1$s</string>
     <string name="steam_continue">繼續</string>
@@ -93,6 +87,7 @@
     <string name="confirm_delete">確認刪除</string>
     <string name="destination_library">遊戲庫</string>
     <string name="destination_downloads">下載與儲存</string>
+    <string name="downloads_section_title">下載</string>
 
     <!-- Library Tabs -->
     <string name="downloads_empty">目前沒有進行中的下載</string>
@@ -225,6 +220,7 @@
     <string name="intent_launch_service_pending">服務就緒後將啟動遊戲</string>
     <string name="intent_launch_steam_login_failed">Steam 登入失敗 — 遊戲啟動已取消</string>
     <string name="intent_launch_service_timeout">遊戲服務啟動失敗 — 遊戲啟動已取消</string>
+    <string name="back_press_exit_warning">再次按返回鍵退出</string>
     <string name="game_executable_not_found_title">無法啟動</string>
     <string name="game_executable_not_found">無法自動選擇可執行檔。請在容器配置中指定可執行檔路徑。</string>
     <string name="save_container_settings_title">保存容器配置?</string>
@@ -247,6 +243,7 @@
     <string name="toggle_fullscreen">切換全屏</string>
     <string name="toggle_orientation">切換螢幕方向</string>
     <string name="task_manager">工作管理員</string>
+    <string name="tools_wine_processes_running_hint">%1$d 個正在執行，點按/點擊某個程序以關閉</string>
     <string name="magnifier">放大鏡</string>
     <string name="logs">應用程序日誌</string>
     <string name="exit_game">退出</string>
@@ -286,6 +283,8 @@
     <string name="screen_effects_toon_description">加入深色描邊，呈現 cel-shading 風格外觀。</string>
     <string name="screen_effects_fxaa">FXAA</string>
     <string name="screen_effects_fxaa_description">以輕量的後處理抗鋸齒平滑鋸齒邊緣。</string>
+    <string name="screen_effects_vivid">鮮豔</string>
+    <string name="screen_effects_vivid_description">加入泛光與對比增強，讓畫面更有張力。</string>
     <string name="screen_effects_crt">CRT</string>
     <string name="screen_effects_crt_description">加入掃描線與細微的色差效果。</string>
     <string name="screen_effects_ntsc">NTSC</string>
@@ -442,6 +441,7 @@
     <!-- Settings -->
     <string name="settings_save_logcat_subtitle">保存此應用程序 PID 的 logcat 快照</string>
     <string name="settings_save_logcat_title">保存 logcat</string>
+    <string name="settings_achievement_show_notification">顯示成就通知</string>
 
     <string name="box86_64_env_var_help__dynarec_safeflags"><![CDATA[
         CALL/RET opcodes 的 flags 處理方式<br /><br />
@@ -890,6 +890,8 @@
     <string name="settings_info_libraries_subtitle">了解哪些技術讓GameNative成為可能</string>
     <string name="settings_info_privacy_title">隱私權政策</string>
     <string name="settings_info_privacy_subtitle">開啟連結至 GameNative 的隱私權政策</string>
+    <string name="settings_info_usage_analytics_title">使用分析</string>
+    <string name="settings_info_usage_analytics_subtitle">我們絕不追蹤個人資訊。關閉此選項將停止非必要的分析，但核心遊戲效能資料仍會作為合法權益繼續收集，以改善相容性。</string>
 
     <!-- Settings: Interface Group -->
     <string name="settings_interface_title">介面</string>
@@ -897,6 +899,10 @@
     <string name="settings_interface_external_links_subtitle">連結將以您的主要網頁瀏覽器開啟</string>
     <string name="settings_interface_hide_statusbar_title">在非遊戲狀態時隱藏狀態列</string>
     <string name="settings_interface_hide_statusbar_subtitle">在遊戲清單、設定等介面隱藏 Android 狀態列。變更後應用程式將重新啟動。</string>
+    <string name="settings_interface_warn_before_exit_title">退出前警告</string>
+    <string name="settings_interface_warn_before_exit_subtitle">需要雙擊返回鍵退出——第一次按下顯示警告</string>
+    <string name="settings_interface_show_gamepad_hints_title">顯示手把提示</string>
+    <string name="settings_interface_show_gamepad_hints_subtitle">在螢幕底部顯示手把按鍵提示列</string>
     <string name="settings_interface_wifi_only_title">僅限透過 Wi-Fi/LAN 下載</string>
     <string name="settings_interface_wifi_only_subtitle">禁止使用行動數據下載</string>
     <string name="settings_interface_external_storage_title">寫入外部儲存裝置</string>
@@ -964,9 +970,11 @@
     <string name="library_export_cancelled">匯出已取消</string>
     <string name="library_shortcut_created">捷徑已建立</string>
     <string name="library_failed_to_create_shortcut">建立捷徑失敗: %s</string>
+    <string name="library_cloud_sync_starting">正在開始雲端存檔同步…</string>
     <string name="library_cloud_sync_success">雲端同步完成</string>
     <string name="library_cloud_sync_up_to_date">儲存檔案已更新至最新版本</string>
-    <string name="library_cloud_sync_failed">雲端同步失敗: %s</string>
+    <string name="library_cloud_sync_failed">雲端同步失敗</string>
+    <string name="library_cloud_sync_error">雲端存檔同步錯誤：%1$s</string>
 
     <!-- LibraryAppScreen: UI Labels -->
     <string name="library_need_internet">需連網安裝</string>
@@ -1090,11 +1098,14 @@
 
     <!-- Best Config Toast Messages -->
     <string name="best_config_applied_successfully">配置已成功套用</string>
+    <string name="best_config_missing_components_title">設定未套用</string>
+    <string name="best_config_missing_components_message">此裝置上以下必要元件無法使用：\n\n%1$s\n\n請安裝缺少的元件後重試。</string>
     <string name="best_config_known_config_invalid">已知配置無效</string>
     <string name="best_config_no_config_available">此遊戲沒有可用的最佳配置</string>
     <string name="best_config_fetch_failed">無法取得配置，請檢查網路連線。</string>
+    <string name="best_config_apply_anyway">仍然套用</string>
+    <string name="best_config_applied_with_defaults">設定已套用，缺少的元件已替換為預設值</string>
     <string name="best_config_apply_failed">套用配置失敗: %s</string>
-    <string name="best_config_missing_content">%s 缺少</string>
     <string name="import_config">匯入設定</string>
     <string name="export_config">匯出設定</string>
 
@@ -1357,4 +1368,26 @@
     <string name="workshop_processing">正在處理模組…</string>
     <string name="workshop_failed_count">%1$d 個創意工坊模組更新失敗</string>
     <string name="workshop_download_failed">下載失敗</string>
+
+    <!-- Recommendations -->
+    <string name="recommended_badge">推薦</string>
+    <string name="recommended_buy_button">查看遊戲</string>
+    <string name="recommended_support_message">透過此連結購買有助於支持 GameNative 的開發。</string>
+    <string name="recommended_about_heading">關於本遊戲</string>
+    <string name="recommended_review_count">基於 %1$s 則評價</string>
+    <string name="review_overwhelmingly_positive">壓倒性好評</string>
+    <string name="review_very_positive">極度好評</string>
+    <string name="review_mostly_positive">大多好評</string>
+    <string name="review_mixed">褒貶不一</string>
+    <string name="review_mostly_negative">大多負評</string>
+    <string name="review_overwhelmingly_negative">壓倒性負評</string>
+    <string name="settings_interface_show_recommendations_title">顯示遊戲推薦</string>
+    <string name="settings_interface_show_recommendations_subtitle">在遊戲庫中顯示精選獨立遊戲。保持開啟有助於支持獨立開發者和 GameNative。</string>
+     <string name="steam_save_export_success">存檔已匯出</string>
+     <string name="steam_save_export_no_saves_found">未找到存檔檔案</string>
+     <string name="steam_save_export_failed">匯出存檔失敗：%s</string>
+     <string name="steam_save_import_success">存檔已匯入</string>
+     <string name="steam_save_import_failed">匯入存檔失敗：%s</string>
+    <string name="option_import_saves">匯入存檔</string>
+    <string name="option_export_saves">匯出存檔</string>
 </resources>

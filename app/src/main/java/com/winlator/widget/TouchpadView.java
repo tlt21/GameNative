@@ -63,6 +63,9 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
     private final boolean capturePointerOnExternalMouse;
     private boolean pointerCaptureRequested;
 
+    // Suppress spurious left-click after two-finger right-click tap
+    private boolean suppressNextLeftTap;
+
     // ── Gesture configuration ────────────────────────────────────────
     private TouchGestureConfig gestureConfig = new TouchGestureConfig();
 
@@ -89,6 +92,7 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
     private float pinchLastDistance;
     // Two-finger tap detection
     private boolean twoFingerTapPossible;
+    private boolean twoFingerTapFired;
     // Track which WASD/arrow keys are currently held
     private boolean panKeyUp, panKeyDown, panKeyLeft, panKeyRight;
     // True when finger has moved beyond tap tolerance (prevents spurious tap on lift)
@@ -314,6 +318,7 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
                 if (event.isFromSource(InputDevice.SOURCE_MOUSE)) return true;
                 scrollAccumY = 0;
                 scrolling = false;
+                suppressNextLeftTap = false;
                 fingers[pointerId] = new Finger(event.getX(actionIndex), event.getY(actionIndex));
                 numFingers++;
                 if (simTouchScreen) {
@@ -534,6 +539,8 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
 
     // ── Primary finger down ──────────────────────────────────────────
     private void handleTsDown(MotionEvent event) {
+        flushPendingTapRelease();
+
         float[] pt = XForm.transformPoint(xform, event.getX(), event.getY());
         int x = (int) pt[0];
         int y = (int) pt[1];
@@ -545,6 +552,7 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
         movedBeyondTapThreshold = false;
         twoFingerDragging = false;
         twoFingerTapPossible = false;
+        twoFingerTapFired = false;
         twoFingerMiddleButtonDown = false;
         twoFingerGestureMode = TWO_FINGER_GESTURE_NONE;
 
@@ -712,6 +720,7 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
             moveCursorTo((int) pt[0], (int) pt[1]);
             injectClick(gestureConfig.getTwoFingerTapAction());
             injectRelease(gestureConfig.getTwoFingerTapAction());
+            twoFingerTapFired = true;
         }
         releasePanKeys();
         releaseTwoFingerMiddleButton();
@@ -754,11 +763,21 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
             return;
         }
 
+        // Two-finger tap already sent its click on POINTER_UP — skip the tap on UP
+        if (twoFingerTapFired) {
+            twoFingerTapFired = false;
+            return;
+        }
+
         // Simple tap — only if finger stayed within tap tolerance
         if (gestureConfig.getTapEnabled() && !movedBeyondTapThreshold) {
             moveCursorTo((int) pt[0], (int) pt[1]);
             injectClick(TouchGestureConfig.ACTION_LEFT_CLICK);
-            injectRelease(TouchGestureConfig.ACTION_LEFT_CLICK);
+            delayedPress = () -> {
+                injectRelease(TouchGestureConfig.ACTION_LEFT_CLICK);
+                delayedPress = null;
+            };
+            postDelayed(delayedPress, CLICK_DELAYED_TIME);
         }
 
         // Record for double-tap detection (even if tap itself is disabled,
@@ -787,6 +806,16 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
     }
 
     // ── Helpers ──────────────────────────────────────────────────────
+
+    private void flushPendingTapRelease() {
+        if (delayedPress != null) {
+            // If there's a new single tap within 'CLICK_DELAYED_TIME' ms
+            // Immediately release the previous down click
+            removeCallbacks(delayedPress);
+            injectRelease(TouchGestureConfig.ACTION_LEFT_CLICK);
+            delayedPress = null;
+        }
+    }
 
     private void cancelLongPressTimer() {
         if (longPressRunnable != null) {
@@ -963,18 +992,20 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
     private void handleFingerUp(Finger finger1) {
         switch (this.numFingers) {
             case 1:
-                if (finger1.isTap()) {
+                if (finger1.isTap() && !suppressNextLeftTap) {
                     if (this.moveCursorToTouchpoint) {
                         this.xServer.injectPointerMove(finger1.x, finger1.y);
                 }
                     pressPointerButtonLeft(finger1);
                     break;
                 }
+                suppressNextLeftTap = false;
                 break;
             case 2:
                 Finger finger2 = findSecondFinger(finger1);
                 if (finger2 != null && finger1.isTap()) {
                     pressPointerButtonRight(finger1);
+                    suppressNextLeftTap = true;
                     break;
                 }
                 break;
@@ -1064,10 +1095,11 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
             }
             Pointer pointer = this.xServer.pointer;
             Pointer.Button button = Pointer.Button.BUTTON_LEFT;
-            if (!pointer.isButtonPressed(button)) {
-                this.xServer.injectPointerButtonPress(button);
-                this.fingerPointerButtonLeft = finger;
+            if (pointer.isButtonPressed(button)) {
+                this.xServer.injectPointerButtonRelease(button);
             }
+            this.xServer.injectPointerButtonPress(button);
+            this.fingerPointerButtonLeft = finger;
         }
     }
 
@@ -1081,42 +1113,51 @@ public class TouchpadView extends View implements View.OnCapturedPointerListener
             }
             Pointer pointer = this.xServer.pointer;
             Pointer.Button button = Pointer.Button.BUTTON_RIGHT;
-            if (!pointer.isButtonPressed(button)) {
-                this.xServer.injectPointerButtonPress(button);
-                this.fingerPointerButtonRight = finger;
+            if (pointer.isButtonPressed(button)) {
+                this.xServer.injectPointerButtonRelease(button);
             }
+            this.xServer.injectPointerButtonPress(button);
+            this.fingerPointerButtonRight = finger;
         }
     }
 
     private void releasePointerButtonLeft(Finger finger) {
+        if (!isEnabled() || !this.pointerButtonLeftEnabled || finger != this.fingerPointerButtonLeft) return;
+        final Finger capturedFinger = this.fingerPointerButtonLeft;
         // Relative mouse movement support
-        if (isEnabled() && this.pointerButtonLeftEnabled && finger == this.fingerPointerButtonLeft && this.xServer.isRelativeMouseMovement()) {
+        if (this.xServer.isRelativeMouseMovement()) {
             postDelayed(() -> {
+                if (fingerPointerButtonLeft != capturedFinger) return;
                 xServer.getWinHandler().mouseEvent(MouseEventFlags.LEFTUP, 0, 0, 0);
                 fingerPointerButtonLeft = null;
             }, 30);
-            return;
-        }
-        if (isEnabled() && this.pointerButtonLeftEnabled && finger == this.fingerPointerButtonLeft && this.xServer.pointer.isButtonPressed(Pointer.Button.BUTTON_LEFT)) {
+        } else {
             postDelayed(() -> {
-                xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_LEFT);
+                if (fingerPointerButtonLeft != capturedFinger) return;
+                if (xServer.pointer.isButtonPressed(Pointer.Button.BUTTON_LEFT)) {
+                    xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_LEFT);
+                }
                 fingerPointerButtonLeft = null;
             }, 30);
         }
     }
 
     private void releasePointerButtonRight(Finger finger) {
+        if (!isEnabled() || !this.pointerButtonRightEnabled || finger != this.fingerPointerButtonRight) return;
+        final Finger capturedFinger = this.fingerPointerButtonRight;
         // Relative mouse movement support
-        if (isEnabled() && this.pointerButtonRightEnabled && finger == this.fingerPointerButtonRight && this.xServer.isRelativeMouseMovement()) {
+        if (this.xServer.isRelativeMouseMovement()) {
             postDelayed(() -> {
+                if (fingerPointerButtonRight != capturedFinger) return;
                 xServer.getWinHandler().mouseEvent(MouseEventFlags.RIGHTUP, 0, 0, 0);
                 fingerPointerButtonRight = null;
             }, 30);
-            return;
-        }
-        if (isEnabled() && this.pointerButtonRightEnabled && finger == this.fingerPointerButtonRight && this.xServer.pointer.isButtonPressed(Pointer.Button.BUTTON_RIGHT)) {
+        } else {
             postDelayed(() -> {
-                xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_RIGHT);
+                if (fingerPointerButtonRight != capturedFinger) return;
+                if (xServer.pointer.isButtonPressed(Pointer.Button.BUTTON_RIGHT)) {
+                    xServer.injectPointerButtonRelease(Pointer.Button.BUTTON_RIGHT);
+                }
                 fingerPointerButtonRight = null;
             }, 30);
         }
