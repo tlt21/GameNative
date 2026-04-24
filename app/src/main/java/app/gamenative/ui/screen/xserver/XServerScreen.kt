@@ -4128,8 +4128,56 @@ private fun extractDXWrapperFiles(
                 windowsDir,
                 onExtractFileListener,
             )
+            backfillDxvkD3d10ShimsIfMissing(context, windowsDir, onExtractFileListener)
         }
     }
+}
+
+/**
+ * DXVK 2.5+ dropped the `d3d10.dll` / `d3d10_1.dll` wrapper DLLs from its default
+ * release, relying on Wine's own builtin d3d10 to forward into DXVK's d3d10core.
+ * Our Wine builds in this repo have a stub `D3D10CreateDevice1` on that path, so
+ * anything calling d3d10_1 directly (e.g. the Rockstar Launcher) aborts.
+ *
+ * Backfill the missing shims from `dxvk-1.10.3.tzst`. We originally tried the
+ * 2.4.1 shim on the theory that it would be closer to 2.x cores, but in practice
+ * neither the 2.4.1 matched-pair nor the 2.4.1-shim-on-2.x-core combination
+ * works for the Rockstar Launcher on our test devices; only the 1.10.3
+ * matched-pair boots it. The shim DLL itself is just a tiny forwarder to
+ * d3d10core's public `D3D10CoreCreateDevice` entry, which has stayed stable
+ * across DXVK versions, so using the 1.10.3 shim as the backfill gives us the
+ * empirically known-good symbol set without forcing the whole container onto
+ * DXVK 1.10.3. We only backfill when the primary DXVK bundle did not produce a
+ * `d3d10_1.dll`, so matched-pair bundles (1.10.x, 2.4.1) keep their own.
+ */
+private const val DXVK_D3D10_SHIMS_SOURCE = "dxwrapper/dxvk-1.10.3.tzst"
+private val DXVK_D3D10_SHIM_DLLS = setOf("d3d10.dll", "d3d10_1.dll")
+
+private fun backfillDxvkD3d10ShimsIfMissing(
+    context: Context,
+    windowsDir: File,
+    outerListener: OnExtractFileListener?,
+) {
+    val sentinel = File(windowsDir, "system32/d3d10_1.dll")
+    if (sentinel.isFile) return
+
+    Timber.i("d3d10_1.dll missing post-extract; backfilling from $DXVK_D3D10_SHIMS_SOURCE")
+
+    val filterListener = object : OnExtractFileListener {
+        override fun onExtractFile(destination: File?, size: Long): File? {
+            if (destination == null) return null
+            if (destination.name.lowercase() !in DXVK_D3D10_SHIM_DLLS) return null
+            return outerListener?.onExtractFile(destination, size) ?: destination
+        }
+    }
+
+    TarCompressorUtils.extract(
+        TarCompressorUtils.Type.ZSTD,
+        context.assets,
+        DXVK_D3D10_SHIMS_SOURCE,
+        windowsDir,
+        filterListener,
+    )
 }
 private fun cloneOriginalDllFiles(imageFs: ImageFs, vararg dlls: String) {
     val rootDir = imageFs.rootDir
